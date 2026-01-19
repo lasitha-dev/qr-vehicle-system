@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insert Vehicle - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img th:src="@{/images/UoPcrest.jpg}" alt="Logo" class="logo">
+                <h1>Insert / Modify Vehicle</h1>
+            </div>
+            <div class="header-actions">
+                <a th:href="@{/dashboard}" class="btn btn-primary">⬅ Dashboard</a>
+                <a th:href="@{/logout}" class="btn btn-logout">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <!-- Category Selection -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Select Category</h2>
+            </div>
+
+            <form th:action="@{/vehicle/insert}" method="get">
+                <div class="form-group">
+                    <label>Choose a Category:</label>
+                    <select name="category" class="form-control" onchange="this.form.submit()" required>
+                        <option value="">-- Select --</option>
+                        <option value="student" th:selected="${category == 'student'}">Student</option>
+                        <option value="permanent" th:selected="${category == 'permanent'}">Permanent Staff</option>
+                        <option value="temporary" th:selected="${category == 'temporary'}">Temporary Staff</option>
+                        <option value="casual" th:selected="${category == 'casual'}">Casual Staff</option>
+                        <option value="contract" th:selected="${category == 'contract'}">Contract Staff</option>
+                        <option value="institute" th:selected="${category == 'institute'}">Institute Staff</option>
+                        <option value="visitor" th:selected="${category == 'visitor'}">Visitor</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        <!-- Person Selection (when category is selected) -->
+        <div class="card" th:if="${category}">
+            <div class="card-header">
+                <h2 class="card-title">Select <span th:text="${#strings.capitalize(category)}">Person</span></h2>
+            </div>
+
+            <form th:action="@{/vehicle/insert}" method="get">
+                <input type="hidden" name="category" th:value="${category}">
+                <div class="form-group">
+                    <label>Enter ID:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" name="id" class="form-control" placeholder="Enter Employee/Student ID"
+                            th:value="${selectedId}">
+                        <button type="submit" class="btn btn-primary">View</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Existing Vehicles (when person is selected) -->
+        <div class="card section vehicle" th:if="${vehicles}">
+            <h3 style="margin-bottom: 15px;">Existing Vehicles</h3>
+
+            <ul style="list-style: none;" th:if="${not #lists.isEmpty(vehicles)}">
+                <li th:each="v : ${vehicles}"
+                    style="padding: 10px; background: #fafafa; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #f0ad4e;">
+                    <strong th:text="${v.vehicleNo}">Vehicle No</strong>
+                    <span th:if="${v.owner}"> (Owner: <span th:text="${v.owner}"></span>)</span>
+                    <span class="badge" th:classappend="${v.approvalStatus == 'Approved' ? 'badge-success' : 
+                                           (v.approvalStatus == 'Pending' ? 'badge-warning' : 'badge-danger')}"
+                        th:text="${v.approvalStatus}">Status</span>
+                    <br>
+                    <small style="color: #666;">Added by <span th:text="${v.createdBy}"></span> on <span
+                            th:text="${v.createDate}"></span></small>
+                </li>
+            </ul>
+
+            <p th:if="${#lists.isEmpty(vehicles)}">No vehicles added yet.</p>
+        </div>
+
+        <!-- Add Vehicle Form (when person is selected) -->
+        <div class="card section form" th:if="${selectedId}">
+            <h3 style="margin-bottom: 20px;">Add New Vehicle</h3>
+
+            <form th:action="@{/vehicle/add}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="category" th:value="${category}">
+                <input type="hidden" name="id" th:value="${selectedId}">
+
+                <div class="form-group">
+                    <label>Vehicle No:</label>
+                    <input type="text" name="vehicleNo" class="form-control" placeholder="e.g., ABC-1234" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Owner Name:</label>
+                    <input type="text" name="owner" class="form-control" placeholder="Vehicle owner name">
+                </div>
+
+                <div class="form-group">
+                    <label>Certificate PDF:</label>
+                    <input type="file" name="certificate" class="form-control" accept="application/pdf" required>
+                </div>
+
+                <button type="submit" class="btn btn-success">Add Vehicle</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        COPYRIGHT 2025 | INFORMATION TECHNOLOGY CENTER | UNIVERSITY OF PERADENIYA
+    </footer>
+</body>
+
+</html>

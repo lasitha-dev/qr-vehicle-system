@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Person Search - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: #f0f0f0;
+        }
+
+        .header {
+            background: #004080;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .search-form input[type="text"] {
+            width: 60%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        .search-form input[type="text"]:focus {
+            border-color: #0275d8;
+            outline: none;
+            box-shadow: 0 0 5px rgba(2, 117, 216, 0.3);
+        }
+
+        .search-form button {
+            padding: 12px 25px;
+            background: #0275d8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .search-form button:hover {
+            background: #025aa5;
+        }
+
+        .profile-section h3 {
+            color: #004080;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #004080;
+        }
+
+        .profile-image {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-image img {
+            width: 130px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 3px solid #0275d8;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        .details-table th,
+        .details-table td {
+            border: 1px solid #ccc;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        .details-table th {
+            background: #f7f7f7;
+            width: 35%;
+            font-weight: 600;
+        }
+
+        .vehicle-section {
+            margin-top: 30px;
+        }
+
+        .vehicle-section h3 {
+            color: #f0ad4e;
+            margin-bottom: 15px;
+        }
+
+        .vehicle-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .vehicle-table th,
+        .vehicle-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .vehicle-table th {
+            background: #f0ad4e;
+            color: white;
+        }
+
+        .vehicle-table tr:nth-child(even) {
+            background: #fdf8f2;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-approved {
+            background: #5cb85c;
+            color: white;
+        }
+
+        .status-pending {
+            background: #f0ad4e;
+            color: white;
+        }
+
+        .status-rejected {
+            background: #d9534f;
+            color: white;
+        }
+
+        .not-found {
+            text-align: center;
+            color: #d9534f;
+            font-weight: bold;
+            padding: 20px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .nav-buttons button,
+        .nav-buttons a {
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+        }
+
+        .btn-back {
+            background: #0275d8;
+            color: white;
+        }
+
+        .btn-back:hover {
+            background: #025aa5;
+        }
+
+        .btn-logout {
+            background: #d9534f;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background: #c9302c;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">UNIVERSITY OF PERADENIYA - PERSON INFORMATION</div>
+
+    <div class="container">
+        <h2>🔍 Search Person Profile</h2>
+
+        <form class="search-form" th:action="@{/search/person}" method="get">
+            <input type="text" name="id" placeholder="Enter Employee No, Reg No, or Code" th:value="${searchId}"
+                required>
+            <button type="submit">View Full Profile</button>
+        </form>
+
+        <!-- Person Found -->
+        <div th:if="${found}" class="profile-section">
+            <h3>📄 <span th:text="${person.type}">Person</span> Profile Details</h3>
+
+            <!-- Profile Image -->
+            <div class="profile-image" th:if="${person.imageUrl}">
+                <img th:src="${person.imageUrl}" alt="Profile Photo">
+            </div>
+
+            <!-- Details Table -->
+            <table class="details-table">
+                <tr th:if="${person.id}">
+                    <th>ID</th>
+                    <td th:text="${person.id}"></td>
+                </tr>
+                <tr th:if="${person.name}">
+                    <th>Name</th>
+                    <td th:text="${person.name}"></td>
+                </tr>
+                <tr th:if="${person.designation}">
+                    <th>Designation</th>
+                    <td th:text="${person.designation}"></td>
+                </tr>
+                <tr th:if="${person.category}">
+                    <th>Category</th>
+                    <td th:text="${person.category}"></td>
+                </tr>
+                <tr th:if="${person.department}">
+                    <th>Department</th>
+                    <td th:text="${person.department}"></td>
+                </tr>
+                <tr th:if="${person.nic}">
+                    <th>NIC</th>
+                    <td th:text="${person.nic}"></td>
+                </tr>
+                <tr th:if="${person.gender}">
+                    <th>Gender</th>
+                    <td th:text="${person.gender == 'M' ? 'Male' : (person.gender == 'F' ? 'Female' : person.gender)}">
+                    </td>
+                </tr>
+                <tr th:if="${person.faculty}">
+                    <th>Faculty</th>
+                    <td th:text="${person.faculty}"></td>
+                </tr>
+                <tr th:if="${person.course}">
+                    <th>Course</th>
+                    <td th:text="${person.course}"></td>
+                </tr>
+                <tr th:if="${person.semester}">
+                    <th>Semester</th>
+                    <td th:text="${person.semester}"></td>
+                </tr>
+                <tr th:if="${person.reason}">
+                    <th>Reason</th>
+                    <td th:text="${person.reason}"></td>
+                </tr>
+                <tr th:if="${person.dateFrom}">
+                    <th>Valid From</th>
+                    <td th:text="${person.dateFrom}"></td>
+                </tr>
+                <tr th:if="${person.dateTo}">
+                    <th>Valid To</th>
+                    <td th:text="${person.dateTo}"></td>
+                </tr>
+            </table>
+
+            <!-- Vehicle Details -->
+            <div class="vehicle-section" th:if="${not #lists.isEmpty(person.vehicles)}">
+                <h3>🚗 Vehicle Details</h3>
+                <table class="vehicle-table">
+                    <thead>
+                        <tr>
+                            <th>Vehicle No</th>
+                            <th>Owner</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="vehicle : ${person.vehicles}">
+                            <td th:text="${vehicle.vehicleNo}"></td>
+                            <td th:text="${vehicle.owner}"></td>
+                            <td>
+                                <span class="status-badge"
+                                    th:classappend="${vehicle.approvalStatus == 'Approved' ? 'status-approved' : 
+                                                   (vehicle.approvalStatus == 'Pending' ? 'status-pending' : 'status-rejected')}"
+                                    th:text="${vehicle.approvalStatus}">Status</span>
+                            </td>
+                            <td th:text="${vehicle.createDate}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Not Found -->
+        <div th:if="${found == false}" class="not-found">
+            <p th:text="${notFoundMessage}">⚠️ No record found.</p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <a th:href="@{/dashboard}" class="btn-back">⬅️ Back</a>
+            <a th:href="@{/logout}" class="btn-logout">🚪 Logout</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

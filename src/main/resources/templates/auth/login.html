@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f2e6e6, #e6d9d9);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #main {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        #header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: #800000;
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeInDown 1s ease;
+        }
+
+        #header img {
+            width: 50px;
+            height: auto;
+            transition: transform 0.3s;
+        }
+
+        #header img:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        #header h2 {
+            font-size: 24pt;
+            font-weight: 700;
+            text-align: center;
+            margin: 0;
+        }
+
+        #loginCard {
+            background: #ffffff;
+            padding: 40px 50px;
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeInUp 1s ease;
+            margin-top: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        #loginCard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        #loginCard h2 {
+            color: #800000;
+            margin-bottom: 25px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .user-icon {
+            width: 100px;
+            height: 96px;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+
+        .user-icon:hover {
+            transform: scale(1.05);
+        }
+
+        form {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        form input[type="text"],
+        form input[type="password"] {
+            padding: 12px 15px;
+            font-size: 15pt;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: #fff8cc;
+            transition: 0.3s, box-shadow 0.3s, transform 0.3s;
+        }
+
+        form input[type="text"]:focus,
+        form input[type="password"]:focus {
+            border-color: #800000;
+            box-shadow: 0 0 12px rgba(128, 0, 0, 0.4);
+            transform: scale(1.02);
+            outline: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px;
+            font-size: 14pt;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s, transform 0.2s, box-shadow 0.3s;
+        }
+
+        button[type="submit"] {
+            background: #800000;
+            color: #fff;
+            flex: 1;
+        }
+
+        button[type="submit"]:hover {
+            background: #5c0000;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 5px 15px rgba(128, 0, 0, 0.4);
+        }
+
+        button[type="reset"] {
+            background: #ccc;
+            color: #333;
+        }
+
+        button[type="reset"]:hover {
+            background: #aaa;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 5px 15px rgba(100, 100, 100, 0.3);
+        }
+
+        .google-login {
+            margin-top: 25px;
+            text-align: center;
+            animation: fadeIn 1.2s ease;
+        }
+
+        .google-login img {
+            cursor: pointer;
+            width: 230px;
+            height: auto;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+
+        .google-login img:hover {
+            transform: scale(1.08);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .google-login p {
+            font-size: 11pt;
+            color: #555;
+            margin-top: 8px;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        footer {
+            text-align: center;
+            background: #800000;
+            color: #f0f0f0;
+            padding: 15px 0;
+            font-size: 14px;
+            margin-top: 40px;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media(max-width: 500px) {
+            #loginCard {
+                padding: 25px;
+            }
+
+            form input[type="text"],
+            form input[type="password"] {
+                font-size: 13pt;
+            }
+
+            button {
+                font-size: 13pt;
+            }
+
+            #header h2 {
+                font-size: 18pt;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main">
+        <div id="header">
+            <img th:src="@{/images/UoPcrest.jpg}" alt="UoP Logo">
+            <h2>UNIVERSITY OF PERADENIYA</h2>
+        </div>
+
+        <div id="loginCard">
+            <h2>Login to Vehicle QR System</h2>
+
+            <!-- Error/Success Messages -->
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+            <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+            <img th:src="@{/images/user.png}" alt="User Icon" class="user-icon" onerror="this.style.display='none'">
+
+            <form th:action="@{/login}" method="post">
+                <input type="text" name="username" placeholder="Username" required autofocus>
+                <input type="password" name="password" placeholder="Password" required>
+                <div class="btn-group">
+                    <button type="submit">Login</button>
+                    <button type="reset">Cancel</button>
+                </div>
+            </form>
+
+            <div class="google-login">
+                <a th:href="@{/oauth2/authorization/google}">
+                    <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png"
+                        alt="Login with Google">
+                </a>
+                <p>Use your @pdn.ac.lk or @__.pdn.ac.lk email</p>
+            </div>
+        </div>
+
+        <footer>
+            COPYRIGHT 2025 | NILUPA SILVA | INFORMATION TECHNOLOGY CENTER
+        </footer>
+    </div>
+</body>
+
+</html>

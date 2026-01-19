@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} ?: 'QR Vehicle System'">QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<!-- Header Fragment -->
+<header th:fragment="header" class="site-header">
+    <div class="header-content">
+        <div class="logo-section">
+            <img th:src="@{/images/UoPcrest.jpg}" alt="UoP Logo" class="logo">
+            <h1>UNIVERSITY OF PERADENIYA</h1>
+        </div>
+        <div class="header-actions" th:if="${#authorization.expression('isAuthenticated()')}">
+            <span class="user-info" th:text="${#authentication.name}">User</span>
+            <a th:href="@{/logout}" class="btn btn-logout">Logout</a>
+        </div>
+    </div>
+</header>
+
+<!-- Navigation Fragment -->
+<nav th:fragment="nav" class="main-nav" th:if="${#authorization.expression('isAuthenticated()')}">
+    <div class="nav-content">
+        <a th:href="@{/dashboard}" class="nav-link">🏠 Dashboard</a>
+        <a th:href="@{/search/person}" class="nav-link">🔍 Person Search</a>
+        <a th:href="@{/vehicle/search}" class="nav-link" 
+           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''SEARCHER'')')}">🚗 Vehicle Search</a>
+        <a th:href="@{/vehicle/insert}" class="nav-link"
+           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'')')}">➕ Add Vehicle</a>
+        <a th:href="@{/qr/generate}" class="nav-link"
+           th:if="${#authorization.expression('hasRole(''ADMIN'')')}">📱 QR Generator</a>
+    </div>
+</nav>
+
+<!-- Footer Fragment -->
+<footer th:fragment="footer" class="site-footer">
+    <p>COPYRIGHT 2025 | INFORMATION TECHNOLOGY CENTER | UNIVERSITY OF PERADENIYA</p>
+</footer>
+
+<!-- Alert Messages Fragment -->
+<div th:fragment="alerts">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    <div th:if="${message}" class="alert alert-info" th:text="${message}"></div>
+</div>
+
+</body>
+</html>

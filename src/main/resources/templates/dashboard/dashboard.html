@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: #f9f9f9;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #800000;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header .logo img {
+            width: 40px;
+            height: auto;
+        }
+
+        .header .logo h1 {
+            font-size: 18pt;
+            font-weight: 600;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header .user-info span {
+            font-size: 11pt;
+        }
+
+        .btn-logout {
+            padding: 8px 20px;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #c9302c;
+        }
+
+        .main-content {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .welcome-card h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .welcome-card .role-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #800000;
+            color: white;
+            border-radius: 20px;
+            font-size: 12pt;
+            text-transform: capitalize;
+        }
+
+        .tasks-section h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 16pt;
+        }
+
+        .tasks-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .task-card {
+            width: 200px;
+            padding: 25px 20px;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card .icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .task-card .name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .pending-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #d9534f;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12pt;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 600px) {
+            .task-card {
+                width: 150px;
+                padding: 20px 15px;
+            }
+
+            .task-card .icon {
+                font-size: 30px;
+            }
+
+            .header .logo h1 {
+                font-size: 14pt;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <img th:src="@{/images/UoPcrest.jpg}" alt="Logo">
+            <h1>University Dashboard</h1>
+        </div>
+        <div class="user-info">
+            <span th:text="'Welcome, ' + ${fullName ?: username}">Welcome, User</span>
+            <a th:href="@{/logout}" class="btn-logout">LOGOUT</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <!-- Welcome Card -->
+        <div class="welcome-card">
+            <h2 th:text="${#strings.capitalize(userType)} + ' Dashboard'">Dashboard</h2>
+            <span class="role-badge" th:text="${userType}">Role</span>
+        </div>
+
+        <!-- Tasks Section -->
+        <div class="tasks-section">
+            <h3>Available Tasks</h3>
+
+            <div class="tasks-grid" th:if="${not #lists.isEmpty(tasks)}">
+                <a th:each="task : ${tasks}" th:href="@{${task.link}}" class="task-card"
+                    th:style="'background: ' + ${task.color}">
+                    <div class="icon" th:text="${task.icon}">🔧</div>
+                    <div class="name" th:text="${task.name}">Task Name</div>
+                </a>
+            </div>
+
+            <p th:if="${#lists.isEmpty(tasks)}" style="text-align: center; color: #666;">
+                No tasks available for your role.
+            </p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        COPYRIGHT 2025 | INFORMATION TECHNOLOGY CENTER | UNIVERSITY OF PERADENIYA
+    </footer>
+</body>
+
+</html>
