@@ -5,18 +5,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 /**
  * TemporaryStaff Entity - Maps to the 'temporarystaff' table
  * Stores temporary, casual, contract, and institute staff
+ * Note: Uses same structure as slipspaymentsdetailall with composite key (SalDt, EmpNo)
  */
 @Entity
-@Table(name = "temporarystaff")
+@Table(name = "slipspaymentsdetailall")
+@IdClass(StaffId.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TemporaryStaff {
+
+    @Id
+    @Column(name = "SalDt")
+    private String salaryDate;
 
     @Id
     @Column(name = "EmpNo")
@@ -47,10 +51,7 @@ public class TemporaryStaff {
     private String employeeType;
 
     @Column(name = "DtBirth")
-    private LocalDate dateOfBirth;
-
-    @Column(name = "SalDt")
-    private LocalDate salaryDate;
+    private String dateOfBirth;
 
     // Get display name
     public String getDisplayName() {

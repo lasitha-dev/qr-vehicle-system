@@ -64,7 +64,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 newUser.setFullName(name);
                 newUser.setPassword(""); // No password for OAuth users
                 newUser.setUserType("GoogleUser");
-                newUser.setCreateDate(LocalDateTime.now());
+                newUser.setCreateDate(java.time.LocalDate.now().toString());
                 return newUser;
             });
 

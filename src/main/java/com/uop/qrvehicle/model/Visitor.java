@@ -5,11 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Visitor Entity - Maps to the 'visitor' table
  * Stores visitor information
+ * Primary key: ID (varchar)
  */
 @Entity
 @Table(name = "visitor")
@@ -19,9 +20,8 @@ import java.time.LocalDate;
 public class Visitor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
-    private Long id;
+    private String id;
 
     @Column(name = "Name")
     private String name;
@@ -30,14 +30,14 @@ public class Visitor {
     private String reason;
 
     @Column(name = "DateFrom")
-    private LocalDate dateFrom;
+    private LocalDateTime dateFrom;
 
     @Column(name = "DateTo")
-    private LocalDate dateTo;
+    private LocalDateTime dateTo;
 
     // Check if visitor pass is currently valid
     public boolean isValidToday() {
-        LocalDate today = LocalDate.now();
-        return !today.isBefore(dateFrom) && !today.isAfter(dateTo);
+        LocalDateTime now = LocalDateTime.now();
+        return !now.isBefore(dateFrom) && !now.isAfter(dateTo);
     }
 }

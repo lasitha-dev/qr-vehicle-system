@@ -1,6 +1,7 @@
 package com.uop.qrvehicle.repository;
 
 import com.uop.qrvehicle.model.Vehicle;
+import com.uop.qrvehicle.model.VehicleId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ import java.util.Optional;
  * Vehicle Repository - Data access for Vehicle entity
  */
 @Repository
-public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
+public interface VehicleRepository extends JpaRepository<Vehicle, VehicleId> {
 
     List<Vehicle> findByEmpIdOrderByCreateDateDesc(String empId);
 

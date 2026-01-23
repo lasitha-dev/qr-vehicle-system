@@ -1,6 +1,7 @@
 package com.uop.qrvehicle.repository;
 
 import com.uop.qrvehicle.model.TemporaryStaff;
+import com.uop.qrvehicle.model.StaffId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ import java.util.Optional;
  * TemporaryStaff Repository - Data access for temporary, casual, contract, institute staff
  */
 @Repository
-public interface TemporaryStaffRepository extends JpaRepository<TemporaryStaff, String> {
+public interface TemporaryStaffRepository extends JpaRepository<TemporaryStaff, StaffId> {
 
     Optional<TemporaryStaff> findByEmpNo(String empNo);
 

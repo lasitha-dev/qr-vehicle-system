@@ -5,19 +5,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
 /**
  * Staff Entity - Maps to the 'slipspaymentsdetailall' table
  * Stores permanent staff information
+ * Note: This table has composite primary key (SalDt, EmpNo)
  */
 @Entity
 @Table(name = "slipspaymentsdetailall")
+@IdClass(StaffId.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Staff {
+
+    @Id
+    @Column(name = "SalDt")
+    private String salaryDate;
 
     @Id
     @Column(name = "EmpNo")
@@ -48,13 +51,10 @@ public class Staff {
     private String employeeType; // Academic, Non Academic, Acade Support
 
     @Column(name = "DtBirth")
-    private LocalDate dateOfBirth;
+    private String dateOfBirth;
 
     @Column(name = "BrnNm")
     private String branchName;
-
-    @Column(name = "SalDt")
-    private LocalDate salaryDate;
 
     // Get display name
     public String getDisplayName() {

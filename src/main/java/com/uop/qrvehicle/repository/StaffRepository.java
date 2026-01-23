@@ -1,6 +1,7 @@
 package com.uop.qrvehicle.repository;
 
 import com.uop.qrvehicle.model.Staff;
+import com.uop.qrvehicle.model.StaffId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,7 +13,7 @@ import java.util.Optional;
  * Staff Repository - Data access for permanent Staff entity
  */
 @Repository
-public interface StaffRepository extends JpaRepository<Staff, String> {
+public interface StaffRepository extends JpaRepository<Staff, StaffId> {
 
     Optional<Staff> findByEmpNo(String empNo);
 

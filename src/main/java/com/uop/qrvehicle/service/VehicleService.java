@@ -1,6 +1,7 @@
 package com.uop.qrvehicle.service;
 
 import com.uop.qrvehicle.model.Vehicle;
+import com.uop.qrvehicle.model.VehicleId;
 import com.uop.qrvehicle.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,11 +67,24 @@ public class VehicleService {
         Vehicle vehicle = vehicleRepository.findByEmpIdAndVehicleNo(empId, oldVehicleNo)
             .orElseThrow(() -> new IllegalArgumentException("Vehicle not found"));
 
-        vehicle.setVehicleNo(newVehicleNo.toUpperCase());
+        // If vehicle number changed, need to delete old and create new
+        if (!oldVehicleNo.equals(newVehicleNo)) {
+            vehicleRepository.delete(vehicle);
+            
+            Vehicle newVehicle = new Vehicle();
+            newVehicle.setEmpId(empId);
+            newVehicle.setVehicleNo(newVehicleNo.toUpperCase());
+            newVehicle.setOwner(owner);
+            newVehicle.setType(vehicle.getType());
+            newVehicle.setApprovalStatus(approvalStatus != null ? approvalStatus : vehicle.getApprovalStatus());
+            newVehicle.setCreatedBy(updatedBy);
+            newVehicle.setCreateDate(LocalDateTime.now());
+            return vehicleRepository.save(newVehicle);
+        }
+        
         vehicle.setOwner(owner);
-        vehicle.setApprovalStatus(approvalStatus);
+        vehicle.setApprovalStatus(approvalStatus != null ? approvalStatus : vehicle.getApprovalStatus());
         vehicle.setCreatedBy(updatedBy);
-        vehicle.setCreateDate(LocalDateTime.now());
 
         return vehicleRepository.save(vehicle);
     }
@@ -85,22 +99,24 @@ public class VehicleService {
     }
 
     /**
-     * Approve a vehicle
+     * Approve a vehicle by empId and vehicleNo
      */
-    public Vehicle approveVehicle(Long vehicleId) {
-        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+    public Vehicle approveVehicle(String empId, String vehicleNo) {
+        Vehicle vehicle = vehicleRepository.findByEmpIdAndVehicleNo(empId, vehicleNo)
             .orElseThrow(() -> new IllegalArgumentException("Vehicle not found"));
         vehicle.setApprovalStatus("Approved");
+        vehicle.setApprovalDate(LocalDateTime.now());
         return vehicleRepository.save(vehicle);
     }
 
     /**
-     * Reject a vehicle
+     * Reject a vehicle by empId and vehicleNo
      */
-    public Vehicle rejectVehicle(Long vehicleId) {
-        Vehicle vehicle = vehicleRepository.findById(vehicleId)
+    public Vehicle rejectVehicle(String empId, String vehicleNo) {
+        Vehicle vehicle = vehicleRepository.findByEmpIdAndVehicleNo(empId, vehicleNo)
             .orElseThrow(() -> new IllegalArgumentException("Vehicle not found"));
         vehicle.setApprovalStatus("Rejected");
+        vehicle.setApprovalDate(LocalDateTime.now());
         return vehicleRepository.save(vehicle);
     }
 

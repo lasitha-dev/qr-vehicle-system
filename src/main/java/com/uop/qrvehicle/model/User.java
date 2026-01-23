@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 /**
  * User Entity - Maps to the 'user' table
  * Stores system users for authentication
+ * Primary key: username (varchar)
  */
 @Entity
 @Table(name = "user")
@@ -19,10 +20,7 @@ import java.time.LocalDateTime;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "username", unique = true, nullable = false)
+    @Column(name = "username")
     private String username;
 
     @Column(name = "password")
@@ -35,7 +33,7 @@ public class User {
     private String userType; // admin, entry, viewer, searcher, GoogleUser
 
     @Column(name = "Create-Date")
-    private LocalDateTime createDate;
+    private String createDate; // Stored as varchar in DB
 
     @Column(name = "LastLogin")
     private LocalDateTime lastLogin;

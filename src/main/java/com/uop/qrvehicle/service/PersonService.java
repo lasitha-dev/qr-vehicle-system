@@ -59,7 +59,7 @@ public class PersonService {
         // Visitor prefix
         if (searchId.startsWith("VIS_")) {
             String visitorId = searchId.replace("VIS_", "");
-            return searchVisitor(Long.parseLong(visitorId));
+            return searchVisitor(visitorId);
         }
 
         // Try to find by employee number (no prefix)
@@ -70,11 +70,7 @@ public class PersonService {
         if (result.isPresent()) return result;
 
         // Try as visitor ID
-        try {
-            return searchVisitor(Long.parseLong(searchId));
-        } catch (NumberFormatException e) {
-            return Optional.empty();
-        }
+        return searchVisitor(searchId);
     }
 
     /**
@@ -129,21 +125,19 @@ public class PersonService {
     }
 
     /**
-     * Search for visitor by ID
+     * Search for visitor by ID (String)
      */
-    public Optional<PersonSearchResult> searchVisitor(Long visitorId) {
+    public Optional<PersonSearchResult> searchVisitor(String visitorId) {
         return visitorRepository.findById(visitorId)
             .map(visitor -> {
                 PersonSearchResult result = new PersonSearchResult();
-                result.setId(String.valueOf(visitor.getId()));
+                result.setId(visitor.getId());
                 result.setType("Visitor");
                 result.setName(visitor.getName());
                 result.setReason(visitor.getReason());
                 result.setDateFrom(visitor.getDateFrom());
                 result.setDateTo(visitor.getDateTo());
-                result.setVehicles(vehicleRepository.findByEmpIdOrderByCreateDateDesc(
-                    String.valueOf(visitor.getId())
-                ));
+                result.setVehicles(vehicleRepository.findByEmpIdOrderByCreateDateDesc(visitor.getId()));
                 return result;
             });
     }

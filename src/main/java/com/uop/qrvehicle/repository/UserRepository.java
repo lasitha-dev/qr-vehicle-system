@@ -12,7 +12,7 @@ import java.util.Optional;
  * User Repository - Data access for User entity
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, String> {
 
     Optional<User> findByUsername(String username);
 

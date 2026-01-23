@@ -10,21 +10,21 @@ import java.time.LocalDateTime;
 /**
  * Vehicle Entity - Maps to the 'vehidb' table
  * Stores vehicle registration information
+ * Composite Primary Key: (EmpID, Vehino)
  */
 @Entity
 @Table(name = "vehidb")
+@IdClass(VehicleId.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Vehicle {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(name = "EmpID")
     private String empId; // Employee/Student ID
 
+    @Id
     @Column(name = "Vehino")
     private String vehicleNo;
 
@@ -34,7 +34,7 @@ public class Vehicle {
     @Column(name = "Type")
     private String type; // Student, Permanent, Temporary, Casual, Contract, Institute, Visitor
 
-    @Column(name = "ApprovalStatus")
+    @Column(name = "ApprovalStatus", columnDefinition = "enum('Pending','Approved','Rejected')")
     private String approvalStatus; // Pending, Approved, Rejected
 
     @Column(name = "createDate")
@@ -42,6 +42,12 @@ public class Vehicle {
 
     @Column(name = "CreatedBy")
     private String createdBy;
+
+    @Column(name = "ApprovalBy")
+    private String approvalBy;
+
+    @Column(name = "ApprovalDate")
+    private LocalDateTime approvalDate;
 
     // Pre-persist hook to set creation date
     @PrePersist

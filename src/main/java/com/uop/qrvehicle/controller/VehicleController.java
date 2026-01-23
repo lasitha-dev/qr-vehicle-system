@@ -142,13 +142,15 @@ public class VehicleController {
     }
 
     /**
-     * Approve vehicle
+     * Approve vehicle using composite key (empId and vehicleNo)
      */
-    @PostMapping("/approve/{id}")
+    @PostMapping("/approve")
     @PreAuthorize("hasRole('ADMIN')")
-    public String approveVehicle(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String approveVehicle(@RequestParam String empId, 
+                                @RequestParam String vehicleNo,
+                                RedirectAttributes redirectAttributes) {
         try {
-            vehicleService.approveVehicle(id);
+            vehicleService.approveVehicle(empId, vehicleNo);
             redirectAttributes.addFlashAttribute("success", "Vehicle approved!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
@@ -157,13 +159,15 @@ public class VehicleController {
     }
 
     /**
-     * Reject vehicle
+     * Reject vehicle using composite key (empId and vehicleNo)
      */
-    @PostMapping("/reject/{id}")
+    @PostMapping("/reject")
     @PreAuthorize("hasRole('ADMIN')")
-    public String rejectVehicle(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String rejectVehicle(@RequestParam String empId,
+                               @RequestParam String vehicleNo,
+                               RedirectAttributes redirectAttributes) {
         try {
-            vehicleService.rejectVehicle(id);
+            vehicleService.rejectVehicle(empId, vehicleNo);
             redirectAttributes.addFlashAttribute("success", "Vehicle rejected!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
