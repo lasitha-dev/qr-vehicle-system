@@ -2,7 +2,9 @@ package com.uop.qrvehicle.service;
 
 import com.uop.qrvehicle.model.Vehicle;
 import com.uop.qrvehicle.model.VehicleId;
+import com.uop.qrvehicle.model.VehicleType;
 import com.uop.qrvehicle.repository.VehicleRepository;
+import com.uop.qrvehicle.repository.VehicleTypeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,9 +20,19 @@ import java.util.Optional;
 public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
+    private final VehicleTypeRepository vehicleTypeRepository;
 
-    public VehicleService(VehicleRepository vehicleRepository) {
+    public VehicleService(VehicleRepository vehicleRepository,
+                          VehicleTypeRepository vehicleTypeRepository) {
         this.vehicleRepository = vehicleRepository;
+        this.vehicleTypeRepository = vehicleTypeRepository;
+    }
+
+    /**
+     * Get all active vehicle types
+     */
+    public List<VehicleType> getActiveVehicleTypes() {
+        return vehicleTypeRepository.findByIsActiveTrueOrderByTypeName();
     }
 
     /**
@@ -38,10 +50,19 @@ public class VehicleService {
     }
 
     /**
-     * Add a new vehicle
+     * Add a new vehicle (legacy method - without new fields)
      */
     public Vehicle addVehicle(String empId, String vehicleNo, String owner, 
                               String type, String createdBy) {
+        return addVehicle(empId, vehicleNo, owner, type, null, null, null, createdBy);
+    }
+
+    /**
+     * Add a new vehicle with all fields (including vehicle type, mobile, email)
+     */
+    public Vehicle addVehicle(String empId, String vehicleNo, String owner, 
+                              String type, Integer vehicleTypeId, 
+                              String mobile, String email, String createdBy) {
         // Check if vehicle already exists for this employee
         if (vehicleRepository.existsByEmpIdAndVehicleNo(empId, vehicleNo)) {
             throw new IllegalArgumentException("Vehicle already registered for this employee");
@@ -52,9 +73,17 @@ public class VehicleService {
         vehicle.setVehicleNo(vehicleNo.toUpperCase());
         vehicle.setOwner(owner);
         vehicle.setType(type);
+        vehicle.setMobile(mobile);
+        vehicle.setEmail(email);
         vehicle.setCreatedBy(createdBy);
         vehicle.setApprovalStatus("Pending");
         vehicle.setCreateDate(LocalDateTime.now());
+
+        // Set vehicle type if provided
+        if (vehicleTypeId != null) {
+            vehicleTypeRepository.findById(vehicleTypeId)
+                .ifPresent(vehicle::setVehicleType);
+        }
 
         return vehicleRepository.save(vehicle);
     }

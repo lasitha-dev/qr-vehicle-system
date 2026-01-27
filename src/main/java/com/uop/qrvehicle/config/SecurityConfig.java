@@ -69,11 +69,13 @@ public class SecurityConfig {
                 .passwordParameter("password")
                 .permitAll()
             )
-            .oauth2Login(oauth -> oauth
-                .loginPage("/login")
-                .successHandler(oAuth2LoginSuccessHandler)
-                .failureUrl("/login?error=oauth")
-            )
+            // NOTE: Google OAuth2 login disabled to match PHP implementation
+            // Uncomment to re-enable:
+            // .oauth2Login(oauth -> oauth
+            //     .loginPage("/login")
+            //     .successHandler(oAuth2LoginSuccessHandler)
+            //     .failureUrl("/login?error=oauth")
+            // )
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")
@@ -92,8 +94,9 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         // Note: The existing PHP system stores plain text passwords
-        // For migration, you may need a custom encoder or migrate passwords
-        return new BCryptPasswordEncoder();
+        // Using NoOp encoder for compatibility with legacy plaintext passwords
+        // TODO: Migrate to BCrypt in production
+        return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
     }
 
     @Bean

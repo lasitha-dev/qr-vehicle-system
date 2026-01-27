@@ -43,6 +43,9 @@ public class VehicleController {
         model.addAttribute("category", category);
         model.addAttribute("selectedId", id);
         
+        // Add vehicle types for dropdown
+        model.addAttribute("vehicleTypes", vehicleService.getActiveVehicleTypes());
+        
         if (id != null && !id.isEmpty()) {
             List<Vehicle> vehicles = vehicleService.getVehiclesByEmpId(id);
             model.addAttribute("vehicles", vehicles);
@@ -60,6 +63,9 @@ public class VehicleController {
                             @RequestParam String id,
                             @RequestParam String vehicleNo,
                             @RequestParam(required = false) String owner,
+                            @RequestParam(required = false) Integer vehicleTypeId,
+                            @RequestParam(required = false) String mobile,
+                            @RequestParam(required = false) String email,
                             @RequestParam("certificate") MultipartFile certificate,
                             Authentication authentication,
                             RedirectAttributes redirectAttributes) {
@@ -67,8 +73,8 @@ public class VehicleController {
             String username = getUsername(authentication);
             String type = mapCategoryToType(category);
             
-            // Add vehicle
-            vehicleService.addVehicle(id, vehicleNo, owner, type, username);
+            // Add vehicle with new fields
+            vehicleService.addVehicle(id, vehicleNo, owner, type, vehicleTypeId, mobile, email, username);
             
             // Upload certificate if provided
             if (certificate != null && !certificate.isEmpty()) {

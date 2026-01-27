@@ -34,6 +34,19 @@ public class Vehicle {
     @Column(name = "Type")
     private String type; // Student, Permanent, Temporary, Casual, Contract, Institute, Visitor
 
+    // New: Vehicle Type relationship (FK to vehicle_types table)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "vehicle_type_id")
+    private VehicleType vehicleType;
+
+    // New: Mobile number field
+    @Column(name = "Mobile", length = 20)
+    private String mobile;
+
+    // New: Email field
+    @Column(name = "Email", length = 100)
+    private String email;
+
     @Column(name = "ApprovalStatus", columnDefinition = "enum('Pending','Approved','Rejected')")
     private String approvalStatus; // Pending, Approved, Rejected
 
@@ -67,4 +80,12 @@ public class Vehicle {
     public boolean isPending() {
         return "Pending".equalsIgnoreCase(approvalStatus);
     }
+
+    /**
+     * Get vehicle type display name (e.g., "🚗 Car")
+     */
+    public String getVehicleTypeDisplay() {
+        return vehicleType != null ? vehicleType.getDisplayName() : "Unknown";
+    }
 }
+
