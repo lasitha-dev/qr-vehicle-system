@@ -37,35 +37,49 @@
             <table class="table table-striped" th:if="${not #lists.isEmpty(vehicles)}">
                 <thead>
                     <tr>
-                        <th>Vehicle No</th>
+                        <th>Vehicle</th>
                         <th>Owner</th>
-                        <th>Employee/Student ID</th>
-                        <th>Type</th>
-                        <th>Created By</th>
-                        <th>Created Date</th>
+                        <th>Emp/Student ID</th>
+                        <th>Category</th>
+                        <th>Contact</th>
+                        <th>Created</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="vehicle : ${vehicles}">
-                        <td th:text="${vehicle.vehicleNo}"></td>
+                        <td>
+                            <strong th:text="${vehicle.vehicleTypeDisplay}">Type</strong><br>
+                            <span th:text="${vehicle.vehicleNo}">ABC-1234</span>
+                        </td>
                         <td th:text="${vehicle.owner}"></td>
                         <td>
                             <a th:href="@{/search/person(id=${vehicle.empId})}" th:text="${vehicle.empId}"></a>
                         </td>
                         <td th:text="${vehicle.type}"></td>
-                        <td th:text="${vehicle.createdBy}"></td>
-                        <td th:text="${vehicle.createDate}"></td>
                         <td>
-                            <form th:action="@{/vehicle/approve/{id}(id=${vehicle.id})}" method="post"
-                                style="display: inline;">
+                            <small>
+                                <span th:if="${vehicle.mobile}">📱 <span th:text="${vehicle.mobile}"></span></span>
+                                <br th:if="${vehicle.mobile and vehicle.email}">
+                                <span th:if="${vehicle.email}">✉️ <span th:text="${vehicle.email}"></span></span>
+                            </small>
+                        </td>
+                        <td>
+                            <small th:text="${vehicle.createdBy}"></small><br>
+                            <small th:text="${#temporals.format(vehicle.createDate, 'yyyy-MM-dd')}"></small>
+                        </td>
+                        <td>
+                            <form th:action="@{/vehicle/approve}" method="post" style="display: inline;">
+                                <input type="hidden" name="empId" th:value="${vehicle.empId}">
+                                <input type="hidden" name="vehicleNo" th:value="${vehicle.vehicleNo}">
                                 <button type="submit" class="btn btn-success"
                                     style="padding: 5px 15px; font-size: 12px;">
                                     ✓ Approve
                                 </button>
                             </form>
-                            <form th:action="@{/vehicle/reject/{id}(id=${vehicle.id})}" method="post"
-                                style="display: inline;">
+                            <form th:action="@{/vehicle/reject}" method="post" style="display: inline;">
+                                <input type="hidden" name="empId" th:value="${vehicle.empId}">
+                                <input type="hidden" name="vehicleNo" th:value="${vehicle.vehicleNo}">
                                 <button type="submit" class="btn btn-danger"
                                     style="padding: 5px 15px; font-size: 12px;">
                                     ✗ Reject
