@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Management - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .selection-form {
+            max-width: 700px; margin: 0 auto; padding: 30px;
+            background: white; border-radius: 12px; border: 1px solid #e0e0e0;
+        }
+        .selection-form .form-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;
+        }
+        .image-container {
+            display: flex; gap: 25px; flex-wrap: wrap; margin: 20px 0;
+        }
+        .current-image-box {
+            text-align: center; padding: 20px; background: #f5f5f5;
+            border: 2px dashed #ccc; border-radius: 12px; min-width: 250px;
+        }
+        .current-image-box img {
+            max-width: 250px; max-height: 300px; border-radius: 8px;
+            border: 2px solid #ddd; object-fit: cover;
+        }
+        .upload-box {
+            flex: 1; min-width: 280px; padding: 20px;
+            background: #e8f5e9; border: 2px dashed #4caf50;
+            border-radius: 12px;
+        }
+        .id-card-preview {
+            margin: 25px 0; padding: 0;
+        }
+        .id-card {
+            width: 340px; height: 214px; position: relative;
+            background: linear-gradient(135deg, #800020, #1a237e);
+            border-radius: 10px; color: white; overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-bottom: 15px;
+        }
+        .id-card-back {
+            background: linear-gradient(135deg, #1a237e, #800020);
+        }
+        .id-card .card-header-bar {
+            background: rgba(255,255,255,0.15); padding: 6px 12px;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.7em; font-weight: bold;
+        }
+        .id-card .card-header-bar img {
+            width: 25px; height: 25px; border-radius: 50%;
+        }
+        .id-card .card-body {
+            display: flex; padding: 8px 12px; gap: 12px;
+        }
+        .id-card .photo-frame {
+            width: 75px; height: 95px; background: rgba(255,255,255,0.2);
+            border: 1.5px solid rgba(255,255,255,0.4); border-radius: 4px;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .id-card .photo-frame img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .id-card .card-details { font-size: 0.55em; line-height: 1.5; flex: 1; }
+        .id-card .card-details .name { font-size: 1.3em; font-weight: bold; margin-bottom: 3px; }
+        .id-card .card-details .field-label { opacity: 0.7; font-size: 0.9em; }
+        .id-card .expiry-bar {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.3); padding: 4px 12px;
+            font-size: 0.55em; display: flex; justify-content: space-between;
+        }
+
+        .archived-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px; margin-top: 15px;
+        }
+        .archived-grid img {
+            width: 100%; height: 100px; object-fit: cover; border-radius: 6px;
+            border: 1px solid #ddd; cursor: pointer;
+        }
+
+        @media print {
+            .upload-box, .btn-group, .selection-form,
+            .site-header, .site-footer, .main-nav { display: none; }
+            .id-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+        @media (max-width: 768px) {
+            .selection-form .form-row { grid-template-columns: 1fr; }
+            .image-container { flex-direction: column; }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: nav}"></div>
+
+    <div class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- =============== SELECTION FORM =============== -->
+        <div th:unless="${showDetail}" class="selection-form">
+            <h2 style="text-align:center; margin-bottom:20px;">🖼️ Image Management</h2>
+
+            <form th:action="@{/view/images}" method="get">
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" id="categorySelect" class="form-control" required
+                            onchange="this.form.submit()">
+                        <option value="">-- Select Category --</option>
+                        <option value="Student" th:selected="${category == 'Student'}">🎓 Student</option>
+                        <option value="Permanent" th:selected="${category == 'Permanent'}">👔 Permanent Staff</option>
+                        <option value="Temporary" th:selected="${category == 'Temporary'}">👤 Temporary Staff</option>
+                        <option value="Casual" th:selected="${category == 'Casual'}">👤 Casual Staff</option>
+                        <option value="Contract" th:selected="${category == 'Contract'}">👤 Contract Staff</option>
+                        <option value="Institute" th:selected="${category == 'Institute'}">🏛️ Institute Staff</option>
+                        <option value="Visitor" th:selected="${category == 'Visitor'}">🚶 Visitor</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Person ID</label>
+                    <input type="text" name="id" class="form-control"
+                           placeholder="Enter Employee No / Registration No / Visitor ID"
+                           required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%;">
+                    🔍 View / Manage Image
+                </button>
+            </form>
+        </div>
+
+        <!-- =============== DETAIL VIEW =============== -->
+        <div th:if="${showDetail}">
+
+            <!-- Person Info Header -->
+            <div th:if="${person}" class="card" style="margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:15px; padding:15px;">
+                    <div>
+                        <h3 th:text="${person.name}" style="margin:0;">Name</h3>
+                        <span style="color:#666;" th:text="${person.type + ' — ' + person.id}">Type - ID</span>
+                        <span th:if="${person.designation}" style="display:block; color:#888;"
+                              th:text="${person.designation}"></span>
+                        <span th:if="${person.department}" style="display:block; color:#888;"
+                              th:text="${person.department}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image + Upload Section -->
+            <div class="image-container">
+                <!-- Current Image -->
+                <div class="current-image-box">
+                    <h4>Current Photo</h4>
+                    <div th:if="${hasImage}">
+                        <img th:src="${currentImageUrl}" alt="Profile Photo">
+                    </div>
+                    <div th:unless="${hasImage}" style="padding:40px 0; color:#999;">
+                        <p style="font-size:3em;">📷</p>
+                        <p>No photo uploaded</p>
+                    </div>
+
+                    <!-- Delete button (admin only) -->
+                    <form th:if="${hasImage}" th:action="@{/view/images/delete}" method="post"
+                          style="margin-top:10px;"
+                          sec:authorize="hasRole('ADMIN')"
+                          onsubmit="return confirm('Delete this image? Old image will NOT be archived.')">
+                        <input type="hidden" name="category" th:value="${category}">
+                        <input type="hidden" name="id" th:value="${id}">
+                        <button type="submit" class="btn btn-danger" style="font-size:0.85em;">🗑️ Delete</button>
+                    </form>
+                </div>
+
+                <!-- Upload Form -->
+                <div class="upload-box" sec:authorize="hasAnyRole('ADMIN','ENTRY')">
+                    <h4>📤 Upload New Photo</h4>
+                    <p style="font-size:0.85em; color:#666; margin-bottom:12px;">
+                        Uploading a new photo will archive the current one automatically.
+                    </p>
+                    <form th:action="@{/view/images/upload}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="category" th:value="${category}">
+                        <input type="hidden" name="id" th:value="${id}">
+
+                        <div class="form-group">
+                            <label>Select Image</label>
+                            <input type="file" name="profile_image" class="form-control"
+                                   accept="image/*" required>
+                        </div>
+
+                        <!-- Image preview -->
+                        <div id="imagePreview" style="margin:10px 0; display:none; text-align:center;">
+                            <img id="previewImg" src="" alt="Preview"
+                                 style="max-width:200px; max-height:250px; border-radius:8px; border:2px solid #4caf50;">
+                        </div>
+
+                        <button type="submit" class="btn btn-success" style="width:100%;">
+                            ⬆️ Upload Image
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- =============== ID CARD PREVIEW (Staff only) =============== -->
+            <div th:if="${showIdCard}" class="card" style="margin-top:20px;">
+                <div class="card-header"><h3 class="card-title">🪪 ID Card Preview</h3></div>
+                <div style="padding:20px; display:flex; gap:25px; flex-wrap:wrap; justify-content:center;">
+
+                    <!-- Front Card -->
+                    <div>
+                        <h4 style="text-align:center; margin-bottom:8px;">Front</h4>
+                        <div class="id-card">
+                            <div class="card-header-bar">
+                                <img th:src="@{/images/UoPcrest.jpg}" alt="Logo">
+                                <span>UNIVERSITY OF PERADENIYA</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="photo-frame">
+                                    <img th:if="${hasImage}" th:src="${currentImageUrl}" alt="Photo">
+                                    <div th:unless="${hasImage}"
+                                         style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2em;">👤</div>
+                                </div>
+                                <div class="card-details">
+                                    <div class="name" th:text="${person != null} ? ${person.name} : 'Full Name'">Name</div>
+                                    <div><span class="field-label">Designation: </span>
+                                        <span th:text="${person != null and person.designation != null} ? ${person.designation} : '—'">Desg</span></div>
+                                    <div><span class="field-label">Department: </span>
+                                        <span th:text="${person != null and person.department != null} ? ${person.department} : '—'">Dept</span></div>
+                                    <div><span class="field-label">Emp No: </span>
+                                        <span th:text="${id}">ID</span></div>
+                                    <div th:if="${staffNic}"><span class="field-label">NIC: </span>
+                                        <span th:text="${staffNic}">NIC</span></div>
+                                </div>
+                            </div>
+                            <div class="expiry-bar">
+                                <span th:text="'Type: ' + (${staffEmployeeType} ?: '—')">Type</span>
+                                <span th:text="'Expiry: ' + (${expiryDate} ?: '—')">Expiry</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Back Card -->
+                    <div>
+                        <h4 style="text-align:center; margin-bottom:8px;">Back</h4>
+                        <div class="id-card id-card-back">
+                            <div class="card-header-bar">
+                                <img th:src="@{/images/UoPcrest.jpg}" alt="Logo">
+                                <span>UNIVERSITY OF PERADENIYA</span>
+                            </div>
+                            <div style="padding:15px; font-size:0.55em; line-height:1.6;">
+                                <p style="font-weight:bold; margin-bottom:8px;">CONDITIONS OF USE</p>
+                                <ol style="margin:0; padding-left:15px;">
+                                    <li>This card is the property of the University of Peradeniya.</li>
+                                    <li>The holder must present this card on demand.</li>
+                                    <li>Loss of this card must be reported immediately.</li>
+                                    <li>This card is not transferable.</li>
+                                </ol>
+                            </div>
+                            <div class="expiry-bar">
+                                <span>University of Peradeniya</span>
+                                <span>Information Technology Center</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align:center; padding:0 20px 20px;">
+                    <button onclick="window.print()" class="btn btn-primary">🖨️ Print ID Card</button>
+                </div>
+            </div>
+
+            <!-- =============== ARCHIVED IMAGES =============== -->
+            <div th:if="${archivedImages != null and !archivedImages.isEmpty()}" class="card" style="margin-top:20px;">
+                <div class="card-header"><h3 class="card-title">📂 Archived Images</h3></div>
+                <div style="padding:15px;">
+                    <p style="color:#666; font-size:0.9em; margin-bottom:10px;">
+                        Previous photos that were replaced:
+                    </p>
+                    <div class="archived-grid">
+                        <div th:each="img : ${archivedImages}">
+                            <img th:src="@{'/uploads/images/Old/' + ${img}}" th:alt="${img}"
+                                 th:title="${img}" onclick="window.open(this.src, '_blank')">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-group" style="margin-top:20px;">
+                <a th:href="@{/view/images}" class="btn btn-primary">🔄 Select Another</a>
+                <a th:if="${person}"
+                   th:href="@{/view/detail(id=${id}, category=${category})}"
+                   class="btn btn-primary">📋 Full Detail View</a>
+                <a th:href="@{/dashboard}" class="btn btn-secondary">🏠 Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <script>
+        // Image upload preview
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.querySelector('input[name="profile_image"]');
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    const previewImg = document.getElementById('previewImg');
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(ev) {
+                            previewImg.src = ev.target.result;
+                            preview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(e.target.files[0]);
+                    } else {
+                        preview.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

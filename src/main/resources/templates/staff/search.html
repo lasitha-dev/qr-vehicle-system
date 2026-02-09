@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Search - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .search-container { max-width: 800px; margin: 0 auto; }
+        .result-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 18px; border-bottom: 1px solid #f0f0f0;
+        }
+        .result-row:hover { background: #f8f9fa; }
+        .result-row:last-child { border-bottom: none; }
+        .result-name { font-weight: 600; color: #333; }
+        .result-meta { color: #666; font-size: 0.9em; }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: nav}"></div>
+
+    <div class="container search-container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="card">
+            <div class="card-header"><h2 class="card-title">🔍 Staff Search</h2></div>
+
+            <div style="padding: 20px;">
+                <form th:action="@{/staff/search}" method="get" style="display:flex; gap:10px; margin-bottom:20px;">
+                    <input type="text" name="query" class="form-control"
+                           placeholder="Search by name or employee number..."
+                           th:value="${query}" required autofocus>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+
+                <!-- Results -->
+                <div th:if="${results != null}">
+                    <p style="color:#666; margin-bottom:10px;">
+                        <span th:text="${results.size()}">0</span> result(s) found
+                        <span th:if="${query}"> for "<strong th:text="${query}"></strong>"</span>
+                    </p>
+
+                    <div th:if="${results.isEmpty()}" style="text-align:center; padding:30px; color:#999;">
+                        No staff found matching your search.
+                    </div>
+
+                    <div th:unless="${results.isEmpty()}" style="border:1px solid #e0e0e0; border-radius:8px; overflow:hidden;">
+                        <div th:each="s : ${results}" class="result-row">
+                            <div>
+                                <div class="result-name" th:text="${s.empName}">Name</div>
+                                <div class="result-meta">
+                                    <span th:text="${s.empNo}">EmpNo</span>
+                                    <span th:if="${s.designation}"> · <span th:text="${s.designation}"></span></span>
+                                    <span th:if="${s.department}"> · <span th:text="${s.department}"></span></span>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <span style="font-size:0.8em; color:#666;"
+                                      th:text="${s.displayCategory}">Category</span>
+                                <a th:href="@{/staff/detail(empno=${s.empNo})}"
+                                   class="btn btn-primary" style="font-size:0.85em; padding:5px 12px;">View</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:15px;">
+            <a th:href="@{/dashboard}" class="btn btn-secondary">🏠 Dashboard</a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

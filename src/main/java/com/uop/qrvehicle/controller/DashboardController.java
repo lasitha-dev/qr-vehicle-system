@@ -75,6 +75,7 @@ public class DashboardController {
                 tasks.add(new TaskDTO("Insert New Vehicle", "/vehicle/insert", "🚗", "#f0ad4e"));
                 tasks.add(new TaskDTO("QR Generator", "/qr/generate", "📝", "#5cb85c"));
                 tasks.add(new TaskDTO("Student Details", "/student/detail", "🎓", "#17a2b8"));
+                tasks.add(new TaskDTO("Staff Details", "/staff/detail", "👔", "#6c757d"));
                 tasks.add(new TaskDTO("View/Update Images", "/view/images", "👁️", "#0275d8"));
                 tasks.add(new TaskDTO("Search Vehicle", "/vehicle/search", "🔍", "#6f42c1"));
                 tasks.add(new TaskDTO("Person Search", "/search/person", "🧑‍💼", "#ff851b"));
@@ -84,12 +85,14 @@ public class DashboardController {
             case "entry":
                 tasks.add(new TaskDTO("Insert New Vehicle", "/vehicle/insert", "🚗", "#f0ad4e"));
                 tasks.add(new TaskDTO("Student Details", "/student/detail", "🎓", "#17a2b8"));
+                tasks.add(new TaskDTO("Staff Details", "/staff/detail", "👔", "#6c757d"));
                 tasks.add(new TaskDTO("Search Vehicle", "/vehicle/search", "🔍", "#6f42c1"));
                 tasks.add(new TaskDTO("Person Search", "/search/person", "🧑‍💼", "#ff851b"));
                 break;
                 
             case "viewer":
                 tasks.add(new TaskDTO("Student Details", "/student/detail", "🎓", "#17a2b8"));
+                tasks.add(new TaskDTO("Staff Details", "/staff/detail", "👔", "#6c757d"));
                 tasks.add(new TaskDTO("View/Update Images", "/view/images", "👁️", "#0275d8"));
                 break;
                 

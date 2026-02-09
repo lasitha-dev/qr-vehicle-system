@@ -71,8 +71,12 @@ public class SecurityConfig {
                 // Searcher access
                 .requestMatchers("/search/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER")
                 
-                // Student details for admin/entry/viewer
+                // Student and staff details for admin/entry/viewer
                 .requestMatchers("/student/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
+                .requestMatchers("/staff/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
+                
+                // REST API endpoints (authenticated)
+                .requestMatchers("/api/vehicle/**", "/api/user/**", "/api/person/**").authenticated()
                 
                 // Dashboard for all authenticated users
                 .requestMatchers("/dashboard/**").authenticated()
@@ -103,9 +107,9 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
-            // Disable CSRF for API keepalive endpoint (uses its own CSRF scheme)
+            // Disable CSRF for API endpoints (REST)
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/keepalive", "/api/keepalive/**")
+                .ignoringRequestMatchers("/api/**")
             )
             .exceptionHandling(ex -> ex
                 .accessDeniedPage("/error/403")

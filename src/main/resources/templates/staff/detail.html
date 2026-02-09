@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Detail - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .staff-container { max-width: 900px; margin: 0 auto; }
+        .profile-header {
+            display: flex; gap: 25px; align-items: flex-start;
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px;
+        }
+        .profile-photo {
+            width: 130px; height: 160px; border-radius: 8px;
+            border: 3px solid rgba(255,255,255,0.3); object-fit: cover;
+            background: rgba(255,255,255,0.1);
+        }
+        .profile-info h2 { margin: 0 0 5px 0; font-size: 1.5em; }
+        .profile-info .badge {
+            display: inline-block; padding: 3px 12px; border-radius: 15px;
+            font-size: 0.8em; font-weight: bold; background: #42a5f5; color: white;
+        }
+        .info-row {
+            display: flex; gap: 8px; margin: 4px 0;
+            font-size: 0.95em; opacity: 0.95;
+        }
+        .info-row .label { font-weight: bold; min-width: 120px; opacity: 0.8; }
+
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .detail-card {
+            background: white; border: 1px solid #e0e0e0;
+            border-radius: 10px; overflow: hidden;
+        }
+        .detail-card-header {
+            background: #f5f5f5; padding: 12px 18px;
+            border-bottom: 1px solid #e0e0e0; font-weight: bold;
+        }
+        .detail-card-body { padding: 18px; }
+        .detail-card-body table { width: 100%; }
+        .detail-card-body td { padding: 6px 0; vertical-align: top; }
+        .detail-card-body td:first-child {
+            font-weight: 600; color: #555; width: 45%; white-space: nowrap;
+        }
+        .detail-card.full-width { grid-column: 1 / -1; }
+
+        .vehicle-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 15px; border-bottom: 1px solid #f0f0f0;
+        }
+        .vehicle-row:last-child { border-bottom: none; }
+        .vehicle-no { font-weight: bold; color: #1a237e; letter-spacing: 1px; }
+        .status-badge {
+            padding: 3px 10px; border-radius: 12px; font-size: 0.8em; font-weight: bold;
+        }
+        .status-approved { background: #c8e6c9; color: #2e7d32; }
+        .status-pending { background: #fff3e0; color: #e65100; }
+        .status-rejected { background: #ffcdd2; color: #c62828; }
+
+        .search-form-inline {
+            max-width: 500px; margin: 0 auto 25px;
+            display: flex; gap: 10px;
+        }
+        .search-form-inline input { flex: 1; }
+
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+
+        @media print {
+            .btn-group, .site-header, .site-footer, .main-nav, .search-form-inline { display: none; }
+            .profile-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+        @media (max-width: 768px) {
+            .detail-grid { grid-template-columns: 1fr; }
+            .profile-header { flex-direction: column; align-items: center; text-align: center; }
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: nav}"></div>
+
+    <div class="container staff-container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- Search Form -->
+        <form th:action="@{/staff/detail}" method="get" class="search-form-inline">
+            <input type="text" name="empno" class="form-control"
+                   placeholder="Enter Employee Number"
+                   th:value="${searchEmpNo}" required>
+            <button type="submit" class="btn btn-primary">🔍 Search</button>
+        </form>
+
+        <!-- Error -->
+        <div th:if="${error}" class="card" style="text-align:center; padding:30px;">
+            <p style="font-size:1.1em; color:#d32f2f;" th:text="${error}"></p>
+            <a th:href="@{/staff/search}" class="btn btn-primary" style="margin-top:10px;">🔍 Staff Search</a>
+        </div>
+
+        <!-- Staff Detail -->
+        <div th:if="${staff}">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <img th:if="${staff.imageUrl}"
+                     th:src="${staff.imageUrl}" alt="Photo" class="profile-photo"
+                     onerror="this.style.display='none'">
+                <div th:unless="${staff.imageUrl}"
+                     class="profile-photo"
+                     style="display:flex;align-items:center;justify-content:center;font-size:3em;">👤</div>
+
+                <div class="profile-info" style="flex:1;">
+                    <h2 th:text="${staff.empName}">Full Name</h2>
+                    <span class="badge" th:text="${staff.displayCategory}">Category</span>
+
+                    <div class="info-row" style="margin-top:10px;">
+                        <span class="label">Employee No:</span>
+                        <span th:text="${staff.empNo}">EmpNo</span>
+                    </div>
+                    <div class="info-row" th:if="${staff.designation}">
+                        <span class="label">Designation:</span>
+                        <span th:text="${staff.designation}">Designation</span>
+                    </div>
+                    <div class="info-row" th:if="${staff.department}">
+                        <span class="label">Department:</span>
+                        <span th:text="${staff.department}">Department</span>
+                    </div>
+                    <div class="info-row" th:if="${staff.branchName}">
+                        <span class="label">Branch:</span>
+                        <span th:text="${staff.branchName}">Branch</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Cards -->
+            <div class="detail-grid">
+                <!-- Personal Info -->
+                <div class="detail-card">
+                    <div class="detail-card-header">👤 Personal Information</div>
+                    <div class="detail-card-body">
+                        <table>
+                            <tr><td>NIC</td><td th:text="${staff.nic ?: '—'}"></td></tr>
+                            <tr><td>Gender</td><td th:text="${staff.genderDisplay}"></td></tr>
+                            <tr><td>Date of Birth</td><td th:text="${staff.dateOfBirth ?: '—'}"></td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Employment Info -->
+                <div class="detail-card">
+                    <div class="detail-card-header">💼 Employment Details</div>
+                    <div class="detail-card-body">
+                        <table>
+                            <tr><td>Category</td><td th:text="${staff.category ?: '—'}"></td></tr>
+                            <tr><td>Employee Type</td><td th:text="${staff.employeeType ?: '—'}"></td></tr>
+                            <tr><td>Dept Code</td><td th:text="${staff.departmentCode ?: '—'}"></td></tr>
+                            <tr><td>Latest Salary</td><td th:text="${staff.latestSalaryDate ?: '—'}"></td></tr>
+                            <tr th:if="${staff.expiryDate}">
+                                <td>ID Card Expiry</td>
+                                <td th:text="${staff.expiryDate}"
+                                    style="font-weight:bold; color:#d32f2f;"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Vehicles -->
+                <div class="detail-card full-width" th:if="${vehicles != null and !vehicles.isEmpty()}">
+                    <div class="detail-card-header">
+                        🚗 Registered Vehicles (<span th:text="${vehicles.size()}">0</span>)
+                    </div>
+                    <div>
+                        <div th:each="v : ${vehicles}" class="vehicle-row">
+                            <div>
+                                <a th:href="@{/view/detail(id=${staff.empNo}, vehicleno=${v.vehicleNo}, category='Staff')}"
+                                   class="vehicle-no" th:text="${v.vehicleNo}">ABC-1234</a>
+                                <span style="color:#666; font-size:0.9em; margin-left:8px;"
+                                      th:text="${v.owner}">Owner</span>
+                            </div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <span th:if="${v.vehicleType}" style="color:#666; font-size:0.85em;"
+                                      th:text="${v.vehicleTypeDisplay}"></span>
+                                <span class="status-badge"
+                                      th:classappend="${v.approvalStatus == 'Approved'} ? 'status-approved' : (${v.approvalStatus == 'Rejected'} ? 'status-rejected' : 'status-pending')"
+                                      th:text="${v.approvalStatus}">Status</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Vehicles -->
+                <div class="detail-card full-width" th:if="${vehicles == null or vehicles.isEmpty()}">
+                    <div class="detail-card-header">🚗 Vehicles</div>
+                    <div class="detail-card-body" style="text-align:center; padding:25px; color:#999;">
+                        No vehicles registered for this staff member.
+                    </div>
+                </div>
+
+                <!-- Certificates -->
+                <div class="detail-card full-width" th:if="${certificates != null and !certificates.isEmpty()}">
+                    <div class="detail-card-header">📄 Certificates</div>
+                    <div class="detail-card-body">
+                        <div th:each="cert : ${certificates}" style="padding:5px 0;">
+                            <a th:href="@{'/uploads/certificates/' + ${cert}}"
+                               target="_blank" th:text="${cert}">certificate.pdf</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-group">
+                <button onclick="window.print()" class="btn btn-primary">🖨️ Print</button>
+                <a th:href="@{/view/images(category='Staff', id=${staff.empNo})}"
+                   class="btn btn-primary" sec:authorize="hasAnyRole('ADMIN','ENTRY','VIEWER')">🖼️ Manage Image</a>
+                <a th:href="@{/staff/search}" class="btn btn-primary">🔍 Staff Search</a>
+                <a th:href="@{/dashboard}" class="btn btn-secondary">🏠 Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Person &amp; Vehicle Detail - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .detail-container { max-width: 900px; margin: 0 auto; }
+        .profile-header {
+            display: flex; gap: 25px; align-items: flex-start;
+            background: linear-gradient(135deg, #800020, #1a237e);
+            color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px;
+        }
+        .profile-photo {
+            width: 130px; height: 160px; border-radius: 8px;
+            border: 3px solid rgba(255,255,255,0.3); object-fit: cover;
+            background: rgba(255,255,255,0.1);
+        }
+        .profile-info h2 { margin: 0 0 5px 0; font-size: 1.5em; }
+        .profile-info .badge {
+            display: inline-block; padding: 3px 12px; border-radius: 15px;
+            font-size: 0.8em; font-weight: bold;
+        }
+        .badge-student { background: #4caf50; color: white; }
+        .badge-staff { background: #2196f3; color: white; }
+        .badge-visitor { background: #ff9800; color: white; }
+        .info-row {
+            display: flex; gap: 8px; margin: 5px 0;
+            font-size: 0.95em; opacity: 0.95;
+        }
+        .info-row .label { font-weight: bold; min-width: 100px; opacity: 0.8; }
+
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .detail-card {
+            background: white; border: 1px solid #e0e0e0;
+            border-radius: 10px; overflow: hidden;
+        }
+        .detail-card-header {
+            background: #f5f5f5; padding: 12px 18px;
+            border-bottom: 1px solid #e0e0e0; font-weight: bold;
+        }
+        .detail-card-body { padding: 18px; }
+        .detail-card-body table { width: 100%; }
+        .detail-card-body td { padding: 6px 0; vertical-align: top; }
+        .detail-card-body td:first-child {
+            font-weight: 600; color: #555; width: 40%; white-space: nowrap;
+        }
+        .detail-card.full-width { grid-column: 1 / -1; }
+
+        .vehicle-card {
+            border: 2px solid #e0e0e0; border-radius: 10px;
+            padding: 20px; margin-bottom: 15px; background: #fafafa;
+        }
+        .vehicle-card.selected {
+            border-color: #1a237e; background: #e8eaf6;
+        }
+        .vehicle-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px;
+        }
+        .vehicle-number {
+            font-size: 1.3em; font-weight: bold; color: #1a237e;
+            letter-spacing: 1px;
+        }
+        .approval-badge {
+            padding: 4px 14px; border-radius: 20px; font-size: 0.8em; font-weight: bold;
+        }
+        .approval-approved { background: #c8e6c9; color: #2e7d32; }
+        .approval-pending { background: #fff3e0; color: #e65100; }
+        .approval-rejected { background: #ffcdd2; color: #c62828; }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        @media print {
+            .btn-group, .site-header, .site-footer, .main-nav { display: none; }
+            .profile-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+        @media (max-width: 768px) {
+            .detail-grid { grid-template-columns: 1fr; }
+            .profile-header { flex-direction: column; align-items: center; text-align: center; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/layout :: header}"></div>
+    <div th:replace="~{fragments/layout :: nav}"></div>
+
+    <div class="container detail-container">
+        <!-- Alerts -->
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <!-- Error state -->
+        <div th:if="${error}" class="card" style="text-align:center; padding:40px;">
+            <p style="font-size:1.2em; color: #d32f2f;" th:text="${error}"></p>
+            <a th:href="@{/search/person}" class="btn btn-primary" style="margin-top:15px;">🔍 Search Again</a>
+        </div>
+
+        <!-- Person found -->
+        <div th:if="${person}">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <img th:if="${person.imageUrl}"
+                     th:src="${person.imageUrl}"
+                     alt="Photo" class="profile-photo"
+                     onerror="this.style.display='none'">
+                <div th:unless="${person.imageUrl}"
+                     class="profile-photo"
+                     style="display:flex;align-items:center;justify-content:center;font-size:3em;">👤</div>
+
+                <div class="profile-info" style="flex:1;">
+                    <h2 th:text="${person.name}">Full Name</h2>
+                    <span class="badge"
+                          th:classappend="${person.type == 'Student'} ? 'badge-student' : (${person.type.contains('Staff')} ? 'badge-staff' : 'badge-visitor')"
+                          th:text="${person.type}">Type</span>
+
+                    <div class="info-row" style="margin-top:10px;">
+                        <span class="label">ID:</span>
+                        <span th:text="${person.id}">ID</span>
+                    </div>
+
+                    <div class="info-row" th:if="${person.designation}">
+                        <span class="label">Designation:</span>
+                        <span th:text="${person.designation}">Designation</span>
+                    </div>
+
+                    <div class="info-row" th:if="${person.department}">
+                        <span class="label">Department:</span>
+                        <span th:text="${person.department}">Department</span>
+                    </div>
+
+                    <div class="info-row" th:if="${person.faculty}">
+                        <span class="label">Faculty:</span>
+                        <span th:text="${person.faculty}">Faculty</span>
+                    </div>
+
+                    <div class="info-row" th:if="${person.course}">
+                        <span class="label">Course:</span>
+                        <span th:text="${person.course}">Course</span>
+                    </div>
+
+                    <div class="info-row" th:if="${semesterInfo}">
+                        <span class="label">Semester:</span>
+                        <span th:text="${semesterInfo}">Semester</span>
+                    </div>
+
+                    <div class="info-row" th:if="${person.reason}">
+                        <span class="label">Reason:</span>
+                        <span th:text="${person.reason}">Reason</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Cards -->
+            <div class="detail-grid">
+                <!-- Personal Info Card -->
+                <div class="detail-card">
+                    <div class="detail-card-header">👤 Personal Information</div>
+                    <div class="detail-card-body">
+                        <table>
+                            <tr th:if="${person.nic}">
+                                <td>NIC</td><td th:text="${person.nic}"></td>
+                            </tr>
+                            <tr th:if="${person.gender}">
+                                <td>Gender</td><td th:text="${person.gender}"></td>
+                            </tr>
+                            <tr th:if="${person.category}">
+                                <td>Category</td><td th:text="${person.category}"></td>
+                            </tr>
+                            <tr th:if="${person.employeeType}">
+                                <td>Employee Type</td><td th:text="${person.employeeType}"></td>
+                            </tr>
+                            <tr th:if="${person.dateFrom}">
+                                <td>Valid From</td>
+                                <td th:text="${#temporals.format(person.dateFrom, 'yyyy-MM-dd')}"></td>
+                            </tr>
+                            <tr th:if="${person.dateTo}">
+                                <td>Valid To</td>
+                                <td th:text="${#temporals.format(person.dateTo, 'yyyy-MM-dd')}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- QR Code Card -->
+                <div class="detail-card">
+                    <div class="detail-card-header">📱 QR Code</div>
+                    <div class="detail-card-body" style="text-align:center;">
+                        <img th:src="@{/qr/code(content=${'/search/person?id=' + person.id})}"
+                             alt="QR Code" style="max-width:200px; border:1px solid #ddd; padding:8px;">
+                        <p style="margin-top:8px; color:#666; font-size:0.9em;" th:text="${person.id}"></p>
+                    </div>
+                </div>
+
+                <!-- Selected Vehicle Card -->
+                <div class="detail-card full-width" th:if="${selectedVehicle}">
+                    <div class="detail-card-header">🚗 Selected Vehicle</div>
+                    <div class="detail-card-body">
+                        <div class="vehicle-card selected">
+                            <div class="vehicle-header">
+                                <span class="vehicle-number" th:text="${selectedVehicle.vehicleNo}">ABC-1234</span>
+                                <span class="approval-badge"
+                                      th:classappend="${selectedVehicle.approvalStatus == 'Approved'} ? 'approval-approved' : (${selectedVehicle.approvalStatus == 'Rejected'} ? 'approval-rejected' : 'approval-pending')"
+                                      th:text="${selectedVehicle.approvalStatus}">Status</span>
+                            </div>
+                            <table>
+                                <tr><td style="font-weight:600;width:130px;">Owner</td><td th:text="${selectedVehicle.owner}"></td></tr>
+                                <tr><td style="font-weight:600;">Category</td><td th:text="${selectedVehicle.type}"></td></tr>
+                                <tr th:if="${selectedVehicle.vehicleType}">
+                                    <td style="font-weight:600;">Type</td>
+                                    <td th:text="${selectedVehicle.vehicleTypeDisplay}"></td>
+                                </tr>
+                                <tr th:if="${selectedVehicle.mobile}">
+                                    <td style="font-weight:600;">Mobile</td><td th:text="${selectedVehicle.mobile}"></td>
+                                </tr>
+                                <tr th:if="${selectedVehicle.email}">
+                                    <td style="font-weight:600;">Email</td><td th:text="${selectedVehicle.email}"></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight:600;">Registered</td>
+                                    <td th:text="${selectedVehicle.createDate != null} ? ${#temporals.format(selectedVehicle.createDate, 'yyyy-MM-dd HH:mm')} : 'N/A'"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Vehicles Card -->
+                <div class="detail-card full-width" th:if="${person.vehicles != null and !person.vehicles.isEmpty()}">
+                    <div class="detail-card-header">🚙 All Registered Vehicles (<span th:text="${person.vehicles.size()}">0</span>)</div>
+                    <div class="detail-card-body">
+                        <div th:each="vehicle : ${person.vehicles}" class="vehicle-card"
+                             th:classappend="${selectedVehicle != null and selectedVehicle.vehicleNo == vehicle.vehicleNo} ? 'selected' : ''">
+                            <div class="vehicle-header">
+                                <a th:href="@{/view/detail(id=${person.id}, vehicleno=${vehicle.vehicleNo}, category=${person.type})}"
+                                   class="vehicle-number" th:text="${vehicle.vehicleNo}">ABC-1234</a>
+                                <span class="approval-badge"
+                                      th:classappend="${vehicle.approvalStatus == 'Approved'} ? 'approval-approved' : (${vehicle.approvalStatus == 'Rejected'} ? 'approval-rejected' : 'approval-pending')"
+                                      th:text="${vehicle.approvalStatus}">Status</span>
+                            </div>
+                            <table>
+                                <tr><td style="font-weight:600;width:130px;">Owner</td><td th:text="${vehicle.owner}"></td></tr>
+                                <tr><td style="font-weight:600;">Category</td><td th:text="${vehicle.type}"></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Vehicles -->
+                <div class="detail-card full-width" th:if="${person.vehicles == null or person.vehicles.isEmpty()}">
+                    <div class="detail-card-header">🚙 Vehicles</div>
+                    <div class="detail-card-body" style="text-align:center; padding:30px; color:#666;">
+                        No vehicles registered.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-group">
+                <button onclick="window.print()" class="btn btn-primary">🖨️ Print</button>
+                <a th:href="@{/search/person}" class="btn btn-primary">🔍 New Search</a>
+                <a th:if="${person.type == 'Student'}"
+                   th:href="@{/student/detail(regno=${person.id})}" class="btn btn-success">📋 Full Student Detail</a>
+                <a th:href="@{/view/images(category=${person.type}, id=${person.id})}"
+                   class="btn btn-primary" sec:authorize="hasAnyRole('ADMIN','ENTRY','VIEWER')">🖼️ Manage Images</a>
+                <a th:href="@{/dashboard}" class="btn btn-secondary">🏠 Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>
