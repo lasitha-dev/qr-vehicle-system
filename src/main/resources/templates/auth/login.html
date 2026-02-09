@@ -301,6 +301,19 @@
                 </a>
                 <p>Use your @pdn.ac.lk or @__.pdn.ac.lk email</p>
             </div>
+
+            <!-- Keycloak University SSO Login -->
+            <div class="google-login" style="margin-top: 15px;">
+                <a th:href="@{/oauth2/authorization/keycloak}" 
+                   style="display: inline-block; padding: 12px 30px; background: #1a237e; color: white; 
+                          border-radius: 10px; text-decoration: none; font-size: 14pt; font-weight: 600;
+                          transition: 0.3s, transform 0.2s; box-shadow: 0 3px 10px rgba(0,0,0,0.2);"
+                   onmouseover="this.style.transform='translateY(-3px) scale(1.02)'; this.style.background='#0d1757';"
+                   onmouseout="this.style.transform='none'; this.style.background='#1a237e';">
+                    🔐 Login with University SSO
+                </a>
+                <p>Keycloak Single Sign-On for University staff</p>
+            </div>
         </div>
 
         <footer>

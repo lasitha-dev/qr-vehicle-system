@@ -1,6 +1,7 @@
 package com.uop.qrvehicle.service;
 
 import com.uop.qrvehicle.dto.PersonSearchResult;
+import com.uop.qrvehicle.dto.StudentDetailDTO;
 import com.uop.qrvehicle.model.*;
 import com.uop.qrvehicle.repository.*;
 import org.springframework.stereotype.Service;
@@ -17,15 +18,18 @@ public class PersonService {
     private final TemporaryStaffRepository temporaryStaffRepository;
     private final VisitorRepository visitorRepository;
     private final VehicleRepository vehicleRepository;
+    private final StudentService studentService;
 
     public PersonService(StaffRepository staffRepository,
                         TemporaryStaffRepository temporaryStaffRepository,
                         VisitorRepository visitorRepository,
-                        VehicleRepository vehicleRepository) {
+                        VehicleRepository vehicleRepository,
+                        StudentService studentService) {
         this.staffRepository = staffRepository;
         this.temporaryStaffRepository = temporaryStaffRepository;
         this.visitorRepository = visitorRepository;
         this.vehicleRepository = vehicleRepository;
+        this.studentService = studentService;
     }
 
     /**
@@ -75,12 +79,23 @@ public class PersonService {
 
     /**
      * Search for a student by registration number
-     * Note: This requires the second datasource for student database
+     * Now uses the StudentService with secondary datasource for student database
      */
     public Optional<PersonSearchResult> searchStudent(String regNo) {
-        // TODO: Implement when student datasource is configured
-        // For now, return empty
-        return Optional.empty();
+        return studentService.getStudentBasicInfo(regNo)
+            .map(student -> {
+                PersonSearchResult result = new PersonSearchResult();
+                result.setId(student.getRegNo());
+                result.setType("Student");
+                result.setName(student.getFullName());
+                result.setFaculty(student.getFacultyName());
+                result.setCourse(student.getCourseName());
+                result.setSemester(student.getSemesterName());
+                result.setGender(student.getGender());
+                result.setImageUrl(student.getImageUrl());
+                result.setVehicles(vehicleRepository.findByEmpIdOrderByCreateDateDesc(regNo));
+                return result;
+            });
     }
 
     /**

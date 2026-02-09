@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Details - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .student-header { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; }
+        .student-photo { width: 120px; height: 160px; object-fit: cover; border-radius: 8px; border: 2px solid #800000; }
+        .student-photo-placeholder { width: 120px; height: 160px; background: #f0f0f0; border-radius: 8px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 48px; color: #ccc; }
+        .student-basic { flex: 1; }
+        .student-basic table { width: 100%; }
+        .student-basic td { padding: 3px 8px; font-size: 14px; }
+        .student-basic td:first-child { font-weight: 600; width: 180px; color: #555; }
+        .detail-section { margin-bottom: 20px; }
+        .detail-section h3 { background: #800000; color: white; padding: 8px 15px; border-radius: 6px 6px 0 0; margin: 0; font-size: 15px; }
+        .detail-section .section-content { border: 1px solid #ddd; border-top: none; padding: 15px; border-radius: 0 0 6px 6px; }
+        .detail-section table { width: 100%; border-collapse: collapse; }
+        .detail-section table td { padding: 5px 10px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .detail-section table td:first-child { font-weight: 600; width: 200px; color: #555; }
+        .status-registered { color: #28a745; font-weight: bold; }
+        .status-suspended { color: #dc3545; font-weight: bold; }
+        .status-deferred { color: #0059b3; font-weight: bold; }
+        .status-cancelled { color: #dc3545; font-weight: bold; }
+        .print-btn { background: #17a2b8; color: white; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .print-btn:hover { background: #138496; }
+        .history-list { list-style: none; padding: 0; }
+        .history-list li { padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .vehicle-card { background: #fafafa; border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #f0ad4e; }
+        @media print { .no-print { display: none !important; } .container { max-width: 100%; } }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img th:src="@{/images/UoPcrest.jpg}" alt="Logo" class="logo">
+                <h1>Student Details</h1>
+            </div>
+            <div class="header-actions no-print">
+                <a th:href="@{/dashboard}" class="btn btn-primary">⬅ Dashboard</a>
+                <button onclick="window.print()" class="print-btn">🖨 Print</button>
+                <a th:href="@{/logout}" class="btn btn-logout">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Search Form -->
+        <div class="card no-print">
+            <div class="card-header">
+                <h2 class="card-title">Search Student</h2>
+            </div>
+            <form th:action="@{/student/detail}" method="get" style="display: flex; gap: 10px; padding: 15px;">
+                <input type="text" name="regno" class="form-control" placeholder="Enter Registration No (e.g., AG/23/218)"
+                    th:value="${searchRegNo}" required>
+                <button type="submit" class="btn btn-primary">View</button>
+            </form>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <!-- Student Profile -->
+        <div th:if="${student}">
+            
+            <!-- Basic Info Header -->
+            <div class="card">
+                <div class="student-header">
+                    <img th:if="${student.imageUrl}" th:src="${student.imageUrl}" alt="Student Photo" class="student-photo"
+                         onerror="this.outerHTML='<div class=\'student-photo-placeholder\'>👤</div>'">
+                    <div th:unless="${student.imageUrl}" class="student-photo-placeholder">👤</div>
+                    
+                    <div class="student-basic">
+                        <table>
+                            <tr>
+                                <td>Registration No</td>
+                                <td><strong th:text="${#strings.toUpperCase(student.regNo)}">REG NO</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Name with Initials</td>
+                                <td th:text="${student.nameWithInitials}">NAME</td>
+                            </tr>
+                            <tr>
+                                <td>NIC No</td>
+                                <td th:text="${#strings.toUpperCase(student.nic ?: '')}">NIC</td>
+                            </tr>
+                            <tr>
+                                <td>Status</td>
+                                <td><span th:classappend="${student.statusClass}" th:text="${student.status}">STATUS</span></td>
+                            </tr>
+                            <tr>
+                                <td>Faculty</td>
+                                <td th:text="${#strings.toUpperCase(student.facultyName ?: '')}">FACULTY</td>
+                            </tr>
+                            <tr>
+                                <td>Course</td>
+                                <td th:text="${#strings.toUpperCase(student.courseName ?: '')}">COURSE</td>
+                            </tr>
+                            <tr th:if="${student.currentSemester}">
+                                <td>Current Semester</td>
+                                <td><strong th:text="${#strings.toUpperCase(student.semesterName ?: '')}" 
+                                            style="color: #800000;">SEMESTER</strong>
+                                    <span th:if="${student.semesterRegDate}" style="color: #666; font-size: 12px;">
+                                        (Registered: <span th:text="${student.semesterRegDate}"></span>)
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Name & Address -->
+            <div class="detail-section">
+                <h3>📋 Personal Information</h3>
+                <div class="section-content">
+                    <table>
+                        <tr>
+                            <td>Full Name</td>
+                            <td th:text="${#strings.toUpperCase(student.fullName ?: '')}">FULL NAME</td>
+                        </tr>
+                        <tr>
+                            <td>Date of Birth</td>
+                            <td th:text="${student.dateOfBirth}">DOB</td>
+                        </tr>
+                        <tr>
+                            <td>Gender</td>
+                            <td th:text="${student.gender}">GENDER</td>
+                        </tr>
+                        <tr>
+                            <td>Religion</td>
+                            <td th:text="${student.religion}">RELIGION</td>
+                        </tr>
+                        <tr>
+                            <td>Ethnicity</td>
+                            <td th:text="${student.ethnicity}">ETHNICITY</td>
+                        </tr>
+                        <tr>
+                            <td>Selection Type</td>
+                            <td th:text="${#strings.toUpperCase(student.selectType ?: '')}">TYPE</td>
+                        </tr>
+                        <tr>
+                            <td>Registered On</td>
+                            <td th:text="${student.registeredOn}">DATE</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Address & Contact -->
+            <div class="detail-section">
+                <h3>📍 Address & Contact</h3>
+                <div class="section-content">
+                    <table>
+                        <tr>
+                            <td>Permanent Address</td>
+                            <td th:text="${student.formattedAddress}">ADDRESS</td>
+                        </tr>
+                        <tr th:if="${student.district}">
+                            <td>District</td>
+                            <td th:text="${student.district}">DISTRICT</td>
+                        </tr>
+                        <tr th:if="${student.divisionalSecretariat}">
+                            <td>Divisional Secretariat</td>
+                            <td th:text="${student.divisionalSecretariat}">DIV SEC</td>
+                        </tr>
+                        <tr th:if="${student.phone}">
+                            <td>Phone</td>
+                            <td th:text="${student.phone}">PHONE</td>
+                        </tr>
+                        <tr th:if="${student.mobile}">
+                            <td>Mobile</td>
+                            <td th:text="${student.mobile}">MOBILE</td>
+                        </tr>
+                        <tr th:if="${student.email}">
+                            <td>Email</td>
+                            <td th:text="${student.email}">EMAIL</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- A/L Results -->
+            <div class="detail-section" th:if="${student.alStream}">
+                <h3>🎓 A/L Results</h3>
+                <div class="section-content">
+                    <table>
+                        <tr>
+                            <td>Stream</td>
+                            <td th:text="${student.alStream}">STREAM</td>
+                        </tr>
+                        <tr th:if="${student.alYear}">
+                            <td>A/L Year</td>
+                            <td th:text="${student.alYear}">YEAR</td>
+                        </tr>
+                        <tr th:if="${student.alDistrict}">
+                            <td>A/L District</td>
+                            <td th:text="${student.alDistrict}">DISTRICT</td>
+                        </tr>
+                        <tr th:if="${student.zScore}">
+                            <td>Z-Score</td>
+                            <td th:text="${student.zScore}">ZSCORE</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Parent/Guardian Info -->
+            <div class="detail-section" th:if="${student.fatherName or student.motherName or student.guardianName}">
+                <h3>👨‍👩‍👧 Parent / Guardian Information</h3>
+                <div class="section-content">
+                    <table>
+                        <tr th:if="${student.fatherName}">
+                            <td>Father's Name</td>
+                            <td th:text="${student.fatherName}">FATHER</td>
+                        </tr>
+                        <tr th:if="${student.motherName}">
+                            <td>Mother's Name</td>
+                            <td th:text="${student.motherName}">MOTHER</td>
+                        </tr>
+                        <tr th:if="${student.guardianName}">
+                            <td>Guardian's Name</td>
+                            <td th:text="${student.guardianName}">GUARDIAN</td>
+                        </tr>
+                        <tr th:if="${student.guardianAddress}">
+                            <td>Guardian's Address</td>
+                            <td th:text="${student.guardianAddress}">ADDRESS</td>
+                        </tr>
+                        <tr th:if="${student.guardianPhone}">
+                            <td>Guardian's Phone</td>
+                            <td th:text="${student.guardianPhone}">PHONE</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="detail-section" th:if="${student.emergencyContactName}">
+                <h3>🚨 Emergency Contact</h3>
+                <div class="section-content">
+                    <table>
+                        <tr>
+                            <td>Contact Name</td>
+                            <td th:text="${student.emergencyContactName}">NAME</td>
+                        </tr>
+                        <tr th:if="${student.emergencyContactPhone}">
+                            <td>Contact Phone</td>
+                            <td th:text="${student.emergencyContactPhone}">PHONE</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Academic History (Promotions) -->
+            <div class="detail-section" th:if="${not #lists.isEmpty(student.promotions)}">
+                <h3>📚 Academic History</h3>
+                <div class="section-content">
+                    <ul class="history-list">
+                        <li th:each="p : ${student.promotions}" th:text="${p}">Promotion entry</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Vehicle Registrations -->
+            <div class="detail-section" th:if="${vehicles}">
+                <h3>🚗 Registered Vehicles</h3>
+                <div class="section-content">
+                    <div th:if="${not #lists.isEmpty(vehicles)}">
+                        <div th:each="v : ${vehicles}" class="vehicle-card">
+                            <strong th:text="${v.vehicleTypeDisplay + ' ' + v.vehicleNo}">Vehicle</strong>
+                            <span th:if="${v.owner}"> — Owner: <span th:text="${v.owner}"></span></span>
+                            <span class="badge" th:classappend="${v.approvalStatus == 'Approved' ? 'badge-success' : 
+                                               (v.approvalStatus == 'Pending' ? 'badge-warning' : 'badge-danger')}"
+                                th:text="${v.approvalStatus}" style="margin-left: 10px;">Status</span>
+                            <br>
+                            <small style="color: #666;">
+                                <span th:if="${v.mobile}">📱 <span th:text="${v.mobile}"></span> | </span>
+                                <span th:if="${v.email}">✉️ <span th:text="${v.email}"></span></span>
+                            </small>
+                        </div>
+                    </div>
+                    <p th:if="${#lists.isEmpty(vehicles)}">No vehicles registered.</p>
+                </div>
+            </div>
+
+            <!-- Certificates -->
+            <div class="detail-section" th:if="${certificates and not #lists.isEmpty(certificates)}">
+                <h3>📄 Certificates</h3>
+                <div class="section-content">
+                    <ul style="list-style: none; padding: 0;">
+                        <li th:each="cert : ${certificates}" style="padding: 5px 0;">
+                            <a th:href="@{'/uploads/certificates/Student/' + ${student.regNo} + '/' + ${cert}}"
+                               th:text="${cert}" target="_blank" style="color: #800000;">Certificate</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        COPYRIGHT 2025 | INFORMATION TECHNOLOGY CENTER | UNIVERSITY OF PERADENIYA
+    </footer>
+</body>
+
+</html>

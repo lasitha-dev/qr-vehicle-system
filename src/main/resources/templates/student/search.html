@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Search - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img th:src="@{/images/UoPcrest.jpg}" alt="Logo" class="logo">
+                <h1>Student Search</h1>
+            </div>
+            <div class="header-actions">
+                <a th:href="@{/dashboard}" class="btn btn-primary">⬅ Dashboard</a>
+                <a th:href="@{/logout}" class="btn btn-logout">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Search Form -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Search Students</h2>
+            </div>
+            <form th:action="@{/student/search}" method="get" style="display: flex; gap: 10px; padding: 15px;">
+                <input type="text" name="query" class="form-control" 
+                       placeholder="Registration No or Name (e.g., AG/23 or Silva)"
+                       th:value="${query}">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+
+        <!-- Results Table -->
+        <div class="card" th:if="${students}">
+            <div class="card-header">
+                <h2 class="card-title">Search Results 
+                    (<span th:text="${#lists.size(students)}">0</span> found)
+                </h2>
+            </div>
+
+            <div th:if="${#lists.isEmpty(students)}" style="padding: 20px; text-align: center; color: #666;">
+                No students found matching your search.
+            </div>
+
+            <table class="data-table" th:if="${not #lists.isEmpty(students)}">
+                <thead>
+                    <tr>
+                        <th>Reg No</th>
+                        <th>Name</th>
+                        <th>Faculty</th>
+                        <th>Course</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="s : ${students}">
+                        <td th:text="${s.regNo}">REG</td>
+                        <td th:text="${s.fullName}">NAME</td>
+                        <td th:text="${s.facultyName}">FACULTY</td>
+                        <td th:text="${s.courseName}">COURSE</td>
+                        <td>
+                            <span class="badge" 
+                                  th:classappend="${s.status == 'REGISTERED' ? 'badge-success' : 
+                                                   (s.status == 'SUSPENDED' ? 'badge-danger' : 
+                                                   (s.status == 'DEFERRED' ? 'badge-warning' : ''))}"
+                                  th:text="${s.status}">STATUS</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/student/detail(regno=${s.regNo})}" class="btn btn-primary" 
+                               style="padding: 5px 12px; font-size: 13px;">View</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        COPYRIGHT 2025 | INFORMATION TECHNOLOGY CENTER | UNIVERSITY OF PERADENIYA
+    </footer>
+</body>
+
+</html>

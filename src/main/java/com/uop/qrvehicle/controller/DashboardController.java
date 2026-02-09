@@ -74,6 +74,7 @@ public class DashboardController {
             case "admin":
                 tasks.add(new TaskDTO("Insert New Vehicle", "/vehicle/insert", "🚗", "#f0ad4e"));
                 tasks.add(new TaskDTO("QR Generator", "/qr/generate", "📝", "#5cb85c"));
+                tasks.add(new TaskDTO("Student Details", "/student/detail", "🎓", "#17a2b8"));
                 tasks.add(new TaskDTO("View/Update Images", "/view/images", "👁️", "#0275d8"));
                 tasks.add(new TaskDTO("Search Vehicle", "/vehicle/search", "🔍", "#6f42c1"));
                 tasks.add(new TaskDTO("Person Search", "/search/person", "🧑‍💼", "#ff851b"));
@@ -82,11 +83,13 @@ public class DashboardController {
                 
             case "entry":
                 tasks.add(new TaskDTO("Insert New Vehicle", "/vehicle/insert", "🚗", "#f0ad4e"));
+                tasks.add(new TaskDTO("Student Details", "/student/detail", "🎓", "#17a2b8"));
                 tasks.add(new TaskDTO("Search Vehicle", "/vehicle/search", "🔍", "#6f42c1"));
                 tasks.add(new TaskDTO("Person Search", "/search/person", "🧑‍💼", "#ff851b"));
                 break;
                 
             case "viewer":
+                tasks.add(new TaskDTO("Student Details", "/student/detail", "🎓", "#17a2b8"));
                 tasks.add(new TaskDTO("View/Update Images", "/view/images", "👁️", "#0275d8"));
                 break;
                 
@@ -96,6 +99,8 @@ public class DashboardController {
                 
             case "googleuser":
             default:
+                // Self-service vehicle registration for OIDC/Google users
+                tasks.add(new TaskDTO("Register My Vehicle", "/my/vehicle", "🚗", "#f0ad4e"));
                 tasks.add(new TaskDTO("Person Search", "/search/person", "🧑‍💼", "#ff851b"));
                 break;
         }

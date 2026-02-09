@@ -34,6 +34,9 @@
            th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'')')}">➕ Add Vehicle</a>
         <a th:href="@{/qr/generate}" class="nav-link"
            th:if="${#authorization.expression('hasRole(''ADMIN'')')}">📱 QR Generator</a>
+        <a th:href="@{/student/detail}" class="nav-link"
+           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''VIEWER'')')}">🎓 Student Details</a>
+        <a th:href="@{/my/vehicle}" class="nav-link">🚘 My Vehicle</a>
     </div>
 </nav>
 
