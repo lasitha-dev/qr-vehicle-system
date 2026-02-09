@@ -56,6 +56,7 @@ public class SecurityConfig {
                 // Admin only
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/vehicle/insert/**", "/vehicle/delete/**").hasRole("ADMIN")
+                .requestMatchers("/vehicle/certificate/**").hasRole("ADMIN")
                 .requestMatchers("/qr/generate/**").hasRole("ADMIN")
                 
                 // Admin and Entry
@@ -75,8 +76,12 @@ public class SecurityConfig {
                 .requestMatchers("/student/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
                 .requestMatchers("/staff/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
                 
+                // ID Card preview for admin/entry/viewer
+                .requestMatchers("/idcard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
+                
                 // REST API endpoints (authenticated)
                 .requestMatchers("/api/vehicle/**", "/api/user/**", "/api/person/**").authenticated()
+                .requestMatchers("/api/students/**").authenticated()
                 
                 // Dashboard for all authenticated users
                 .requestMatchers("/dashboard/**").authenticated()

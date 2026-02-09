@@ -137,6 +137,16 @@ public class VehicleController {
     }
 
     /**
+     * Vehicle number plate OCR scanner page.
+     * Uses Tesseract.js client-side OCR.
+     * Migrated from: App now.php, app1.php
+     */
+    @GetMapping("/scanner")
+    public String vehicleScanner() {
+        return "vehicle/scanner";
+    }
+
+    /**
      * Pending vehicles for approval
      */
     @GetMapping("/pending")
@@ -186,6 +196,34 @@ public class VehicleController {
             return ((CustomUserDetails) authentication.getPrincipal()).getUsername();
         }
         return authentication.getName();
+    }
+
+    /**
+     * Delete a certificate file.
+     * Migrated from: delete_certificate.php
+     */
+    @PostMapping("/certificate/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String deleteCertificate(@RequestParam String category,
+                                     @RequestParam String id,
+                                     @RequestParam String filename,
+                                     @RequestParam(required = false) String returnUrl,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            boolean deleted = certificateService.deleteCertificate(category, id, filename);
+            if (deleted) {
+                redirectAttributes.addFlashAttribute("success", "Certificate deleted: " + filename);
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Certificate not found: " + filename);
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Delete failed: " + e.getMessage());
+        }
+
+        if (returnUrl != null && !returnUrl.isEmpty()) {
+            return "redirect:" + returnUrl;
+        }
+        return "redirect:/vehicle/insert?category=" + category + "&id=" + id;
     }
 
     private String mapCategoryToType(String category) {

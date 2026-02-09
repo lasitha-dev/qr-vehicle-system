@@ -171,4 +171,33 @@ public class EmailService {
             </div>
             """.formatted(personName, personId, category, vehicleNo, baseUrl, personId);
     }
+
+    /**
+     * Send a bulk email to a specific recipient.
+     * Used by the batch email sender (migrated from emailstud.php).
+     *
+     * @param toEmail   Recipient email
+     * @param subject   Email subject
+     * @param htmlBody  HTML email body
+     * @return true if sent successfully
+     */
+    public boolean sendBulkEmail(String toEmail, String subject, String htmlBody) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true);
+
+            mailSender.send(message);
+            log.info("Bulk email sent to: {}", toEmail);
+            return true;
+
+        } catch (Exception e) {
+            log.error("Bulk email failed for {}: {}", toEmail, e.getMessage());
+            return false;
+        }
+    }
 }

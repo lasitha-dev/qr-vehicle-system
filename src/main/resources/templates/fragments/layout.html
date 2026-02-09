@@ -38,6 +38,10 @@
            th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''VIEWER'')')}">🎓 Student Details</a>
         <a th:href="@{/staff/detail}" class="nav-link"
            th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''VIEWER'')')}">👔 Staff Details</a>
+        <a th:href="@{/idcard/preview}" class="nav-link"
+           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''VIEWER'')')}">🪪 ID Card</a>
+        <a th:href="@{/vehicle/scanner}" class="nav-link"
+           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'')')}">📷 Plate Scanner</a>
         <a th:href="@{/my/vehicle}" class="nav-link">🚘 My Vehicle</a>
     </div>
 </nav>
