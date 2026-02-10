@@ -1,85 +1,86 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head}"></head>
+
 <body>
-<header th:replace="~{fragments/layout :: header}"></header>
-<nav th:replace="~{fragments/layout :: nav}"></nav>
+    <header th:replace="~{fragments/layout :: header}"></header>
 
-<div class="container" style="max-width: 900px; margin: 30px auto; padding: 0 20px;">
-    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div class="container" style="max-width: 900px; margin: 30px auto; padding: 0 20px;">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
 
-    <h2 style="color: #800000; text-align: center; margin-bottom: 25px;">🗄️ Database Backup Management</h2>
+        <h2 style="color: #800000; text-align: center; margin-bottom: 25px;">🗄️ Database Backup Management</h2>
 
-    <!-- Create Backup -->
-    <div style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border-left: 5px solid #4caf50;
+        <!-- Create Backup -->
+        <div style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); border-left: 5px solid #4caf50;
                 padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
-        <p style="margin-bottom: 15px; font-size: 16px;">Create a new database backup (mysqldump)</p>
-        <form th:action="@{/admin/backup/create}" method="post" style="display: inline;">
-            <button type="submit" class="btn"
-                    style="background: #4caf50; color: white; padding: 12px 30px; border: none;
+            <p style="margin-bottom: 15px; font-size: 16px;">Create a new database backup (mysqldump)</p>
+            <form th:action="@{/admin/backup/create}" method="post" style="display: inline;">
+                <button type="submit" class="btn" style="background: #4caf50; color: white; padding: 12px 30px; border: none;
                            border-radius: 6px; font-size: 16px; cursor: pointer;"
                     onclick="this.disabled=true; this.textContent='Creating backup...'; this.form.submit();">
-                💾 Create Backup Now
-            </button>
-        </form>
-    </div>
-
-    <!-- Existing Backups -->
-    <div style="background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
-        <div style="background: #1a237e; color: white; padding: 15px 20px;">
-            <h3 style="margin: 0;">📁 Existing Backups</h3>
+                    💾 Create Backup Now
+                </button>
+            </form>
         </div>
-        <div style="padding: 20px;">
-            <div th:if="${#lists.isEmpty(backups)}" style="text-align: center; padding: 30px; color: #666;">
-                No backups found. Click "Create Backup Now" to generate one.
-            </div>
 
-            <table th:if="${!#lists.isEmpty(backups)}" style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #e0e0e0;">
-                        <th style="text-align: left; padding: 10px; color: #555;">Filename</th>
-                        <th style="text-align: center; padding: 10px; color: #555;">Size</th>
-                        <th style="text-align: center; padding: 10px; color: #555;">Created</th>
-                        <th style="text-align: center; padding: 10px; color: #555;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="backup : ${backups}" style="border-bottom: 1px solid #f0f0f0;">
-                        <td style="padding: 12px 10px;">
-                            <span style="font-family: monospace;" th:text="${backup.filename()}">backup.sql</span>
-                        </td>
-                        <td style="text-align: center; padding: 12px 10px;" th:text="${backup.getFormattedSize()}">1.2 MB</td>
-                        <td style="text-align: center; padding: 12px 10px; font-size: 13px;" th:text="${backup.createdAt()}">2026-01-01</td>
-                        <td style="text-align: center; padding: 12px 10px;">
-                            <a th:href="@{/admin/backup/download/{f}(f=${backup.filename()})}"
-                               style="background: #0275d8; color: white; padding: 6px 14px; border-radius: 4px;
+        <!-- Existing Backups -->
+        <div style="background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
+            <div style="background: #1a237e; color: white; padding: 15px 20px;">
+                <h3 style="margin: 0;">📁 Existing Backups</h3>
+            </div>
+            <div style="padding: 20px;">
+                <div th:if="${#lists.isEmpty(backups)}" style="text-align: center; padding: 30px; color: #666;">
+                    No backups found. Click "Create Backup Now" to generate one.
+                </div>
+
+                <table th:if="${!#lists.isEmpty(backups)}" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #e0e0e0;">
+                            <th style="text-align: left; padding: 10px; color: #555;">Filename</th>
+                            <th style="text-align: center; padding: 10px; color: #555;">Size</th>
+                            <th style="text-align: center; padding: 10px; color: #555;">Created</th>
+                            <th style="text-align: center; padding: 10px; color: #555;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="backup : ${backups}" style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 12px 10px;">
+                                <span style="font-family: monospace;" th:text="${backup.filename()}">backup.sql</span>
+                            </td>
+                            <td style="text-align: center; padding: 12px 10px;" th:text="${backup.getFormattedSize()}">
+                                1.2 MB</td>
+                            <td style="text-align: center; padding: 12px 10px; font-size: 13px;"
+                                th:text="${backup.createdAt()}">2026-01-01</td>
+                            <td style="text-align: center; padding: 12px 10px;">
+                                <a th:href="@{/admin/backup/download/{f}(f=${backup.filename()})}" style="background: #0275d8; color: white; padding: 6px 14px; border-radius: 4px;
                                       text-decoration: none; font-size: 13px; margin-right: 5px;">
-                                ⬇ Download
-                            </a>
-                            <form th:action="@{/admin/backup/delete}" method="post" style="display: inline;">
-                                <input type="hidden" name="filename" th:value="${backup.filename()}">
-                                <button type="submit"
-                                        style="background: #d9534f; color: white; padding: 6px 14px; border: none;
+                                    ⬇ Download
+                                </a>
+                                <form th:action="@{/admin/backup/delete}" method="post" style="display: inline;">
+                                    <input type="hidden" name="filename" th:value="${backup.filename()}">
+                                    <button type="submit" style="background: #d9534f; color: white; padding: 6px 14px; border: none;
                                                border-radius: 4px; font-size: 13px; cursor: pointer;"
                                         onclick="return confirm('Delete this backup?');">
-                                    🗑 Delete
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                                        🗑 Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a th:href="@{/dashboard}" class="btn"
+                style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none;">
+                ← Back to Dashboard
+            </a>
         </div>
     </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <a th:href="@{/dashboard}" class="btn"
-           style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none;">
-            ← Back to Dashboard
-        </a>
-    </div>
-</div>
-
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
+
 </html>

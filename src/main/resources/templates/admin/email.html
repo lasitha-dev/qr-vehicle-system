@@ -1,104 +1,106 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head}"></head>
+
 <body>
-<header th:replace="~{fragments/layout :: header}"></header>
-<nav th:replace="~{fragments/layout :: nav}"></nav>
+    <header th:replace="~{fragments/layout :: header}"></header>
 
-<div class="container" style="max-width: 950px; margin: 30px auto; padding: 0 20px;">
-    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div class="container" style="max-width: 950px; margin: 30px auto; padding: 0 20px;">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
 
-    <h2 style="color: #800000; text-align: center; margin-bottom: 25px;">📧 Bulk Email Sender</h2>
+        <h2 style="color: #800000; text-align: center; margin-bottom: 25px;">📧 Bulk Email Sender</h2>
 
-    <!-- Contact count -->
-    <div style="background: linear-gradient(135deg, #e3f2fd, #f3e5f5); border-left: 5px solid #1565c0;
+        <!-- Contact count -->
+        <div style="background: linear-gradient(135deg, #e3f2fd, #f3e5f5); border-left: 5px solid #1565c0;
                 padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
-        <span style="font-size: 16px;">
-            <strong th:text="${contactCount}">0</strong> email contacts found in the database (emailtab table)
-        </span>
-    </div>
+            <span style="font-size: 16px;">
+                <strong th:text="${contactCount}">0</strong> email contacts found in the database (emailtab table)
+            </span>
+        </div>
 
-    <!-- Email Compose Form -->
-    <div style="background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 25px;">
-        <div style="background: #1a237e; color: white; padding: 15px 20px;">
-            <h3 style="margin: 0;">✉️ Compose Bulk Email</h3>
-        </div>
-        <div style="padding: 25px;">
-            <form th:action="@{/admin/email/send}" method="post" onsubmit="return confirmSend();">
-                <div style="margin-bottom: 18px;">
-                    <label style="display: block; font-weight: bold; margin-bottom: 6px; color: #333;">Subject:</label>
-                    <input type="text" name="subject" th:value="${defaultSubject}"
-                           style="width: 100%; padding: 10px 14px; border: 2px solid #ddd; border-radius: 6px; font-size: 15px; box-sizing: border-box;"
-                           required>
-                </div>
-                <div style="margin-bottom: 18px;">
-                    <label style="display: block; font-weight: bold; margin-bottom: 6px; color: #333;">Email Body (HTML):</label>
-                    <textarea name="body" rows="10" th:text="${defaultBody}"
-                              style="width: 100%; padding: 10px 14px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;
-                                     font-family: monospace; box-sizing: border-box;" required></textarea>
-                </div>
-                <div style="text-align: center;">
-                    <button type="submit" class="btn"
-                            style="background: #d9534f; color: white; padding: 12px 35px; border: none;
-                                   border-radius: 6px; font-size: 16px; cursor: pointer;"
-                            id="sendBtn">
-                        📤 Send to All Contacts
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Contacts List -->
-    <div style="background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
-        <div style="background: #37474f; color: white; padding: 15px 20px;">
-            <h3 style="margin: 0;">👥 Email Contacts</h3>
-        </div>
-        <div style="padding: 20px; max-height: 400px; overflow-y: auto;">
-            <div th:if="${#lists.isEmpty(contacts)}" style="text-align: center; padding: 20px; color: #888;">
-                No contacts in the emailtab table.
+        <!-- Email Compose Form -->
+        <div
+            style="background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 25px;">
+            <div style="background: #1a237e; color: white; padding: 15px 20px;">
+                <h3 style="margin: 0;">✉️ Compose Bulk Email</h3>
             </div>
-            <table th:if="${!#lists.isEmpty(contacts)}" style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #e0e0e0;">
-                        <th style="text-align: left; padding: 8px; color: #555;">#</th>
-                        <th style="text-align: left; padding: 8px; color: #555;">Emp No</th>
-                        <th style="text-align: left; padding: 8px; color: #555;">NIC</th>
-                        <th style="text-align: left; padding: 8px; color: #555;">Email</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="contact, iter : ${contacts}" style="border-bottom: 1px solid #f0f0f0;">
-                        <td style="padding: 8px;" th:text="${iter.count}">1</td>
-                        <td style="padding: 8px;" th:text="${contact.empNo}">12345</td>
-                        <td style="padding: 8px; font-family: monospace;" th:text="${contact.nic}">123456789V</td>
-                        <td style="padding: 8px;" th:text="${contact.email}">user@example.com</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div style="padding: 25px;">
+                <form th:action="@{/admin/email/send}" method="post" onsubmit="return confirmSend();">
+                    <div style="margin-bottom: 18px;">
+                        <label
+                            style="display: block; font-weight: bold; margin-bottom: 6px; color: #333;">Subject:</label>
+                        <input type="text" name="subject" th:value="${defaultSubject}"
+                            style="width: 100%; padding: 10px 14px; border: 2px solid #ddd; border-radius: 6px; font-size: 15px; box-sizing: border-box;"
+                            required>
+                    </div>
+                    <div style="margin-bottom: 18px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 6px; color: #333;">Email Body
+                            (HTML):</label>
+                        <textarea name="body" rows="10" th:text="${defaultBody}" style="width: 100%; padding: 10px 14px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;
+                                     font-family: monospace; box-sizing: border-box;" required></textarea>
+                    </div>
+                    <div style="text-align: center;">
+                        <button type="submit" class="btn" style="background: #d9534f; color: white; padding: 12px 35px; border: none;
+                                   border-radius: 6px; font-size: 16px; cursor: pointer;" id="sendBtn">
+                            📤 Send to All Contacts
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Contacts List -->
+        <div style="background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
+            <div style="background: #37474f; color: white; padding: 15px 20px;">
+                <h3 style="margin: 0;">👥 Email Contacts</h3>
+            </div>
+            <div style="padding: 20px; max-height: 400px; overflow-y: auto;">
+                <div th:if="${#lists.isEmpty(contacts)}" style="text-align: center; padding: 20px; color: #888;">
+                    No contacts in the emailtab table.
+                </div>
+                <table th:if="${!#lists.isEmpty(contacts)}" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #e0e0e0;">
+                            <th style="text-align: left; padding: 8px; color: #555;">#</th>
+                            <th style="text-align: left; padding: 8px; color: #555;">Emp No</th>
+                            <th style="text-align: left; padding: 8px; color: #555;">NIC</th>
+                            <th style="text-align: left; padding: 8px; color: #555;">Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="contact, iter : ${contacts}" style="border-bottom: 1px solid #f0f0f0;">
+                            <td style="padding: 8px;" th:text="${iter.count}">1</td>
+                            <td style="padding: 8px;" th:text="${contact.empNo}">12345</td>
+                            <td style="padding: 8px; font-family: monospace;" th:text="${contact.nic}">123456789V</td>
+                            <td style="padding: 8px;" th:text="${contact.email}">user@example.com</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a th:href="@{/dashboard}" class="btn"
+                style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none;">
+                ← Back to Dashboard
+            </a>
         </div>
     </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <a th:href="@{/dashboard}" class="btn"
-           style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none;">
-            ← Back to Dashboard
-        </a>
-    </div>
-</div>
+    <script>
+        function confirmSend() {
+            var count = /*[[${contactCount}]]*/ 0;
+            if (!confirm('Send email to ' + count + ' contacts? This action cannot be undone.')) {
+                return false;
+            }
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('sendBtn').textContent = 'Sending...';
+            return true;
+        }
+    </script>
 
-<script>
-function confirmSend() {
-    var count = /*[[${contactCount}]]*/ 0;
-    if (!confirm('Send email to ' + count + ' contacts? This action cannot be undone.')) {
-        return false;
-    }
-    document.getElementById('sendBtn').disabled = true;
-    document.getElementById('sendBtn').textContent = 'Sending...';
-    return true;
-}
-</script>
-
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
+
 </html>

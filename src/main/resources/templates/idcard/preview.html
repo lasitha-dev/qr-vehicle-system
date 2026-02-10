@@ -1,104 +1,125 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head}"></head>
+
 <body>
-<header th:replace="~{fragments/layout :: header}"></header>
-<nav th:replace="~{fragments/layout :: nav}"></nav>
+    <header th:replace="~{fragments/layout :: header}"></header>
 
-<div class="container" style="max-width: 1300px; margin: 30px auto; padding: 0 20px;">
-    <h2 style="color: #800000; text-align: center; margin-bottom: 25px;">🪪 ID Card Preview & Print</h2>
+    <div class="container" style="max-width: 1300px; margin: 30px auto; padding: 0 20px;">
+        <h2 style="color: #800000; text-align: center; margin-bottom: 25px;">🪪 ID Card Preview & Print</h2>
 
-    <!-- Search Form -->
-    <div style="background: linear-gradient(135deg, #e8f3ff, #fbfdff); border-left: 5px solid #0066cc;
+        <!-- Search Form -->
+        <div style="background: linear-gradient(135deg, #e8f3ff, #fbfdff); border-left: 5px solid #0066cc;
                 padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
-        <form th:action="@{/idcard/preview}" method="get" style="display: inline-flex; gap: 10px; align-items: center;">
-            <label style="font-weight: bold; font-size: 16px;">Employee Number:</label>
-            <input type="text" name="empno" th:value="${empno}" placeholder="e.g. 12345"
-                   style="padding: 10px 15px; border: 2px solid #ccc; border-radius: 6px; font-size: 15px; width: 200px;"
-                   required>
-            <button type="submit" class="btn"
-                    style="background: #0066cc; color: white; padding: 10px 25px; border: none;
+            <form th:action="@{/idcard/preview}" method="get"
+                style="display: inline-flex; gap: 10px; align-items: center;">
+                <label style="font-weight: bold; font-size: 16px;">Employee Number:</label>
+                <input type="text" name="empno" th:value="${empno}" placeholder="e.g. 12345"
+                    style="padding: 10px 15px; border: 2px solid #ccc; border-radius: 6px; font-size: 15px; width: 200px;"
+                    required>
+                <button type="submit" class="btn" style="background: #0066cc; color: white; padding: 10px 25px; border: none;
                            border-radius: 6px; font-size: 15px; cursor: pointer;">
-                🔍 Generate ID Card
-            </button>
-        </form>
-    </div>
+                    🔍 Generate ID Card
+                </button>
+            </form>
+        </div>
 
-    <!-- ID Card Display -->
-    <div th:if="${showCard}" style="text-align: center;">
-        <div style="margin-bottom: 20px;">
-            <button onclick="window.print();" class="btn"
-                    style="background: #4caf50; color: white; padding: 10px 30px; border: none;
+        <!-- ID Card Display -->
+        <div th:if="${showCard}" style="text-align: center;">
+            <div style="margin-bottom: 20px;">
+                <button onclick="window.print();" class="btn" style="background: #4caf50; color: white; padding: 10px 30px; border: none;
                            border-radius: 6px; font-size: 16px; cursor: pointer; margin-right: 10px;">
-                🖨️ Print ID Card
-            </button>
-            <a th:href="@{/idcard/front/{e}.png(e=${empno})}" download class="btn"
-               style="background: #0275d8; color: white; padding: 10px 25px; border-radius: 6px;
+                    🖨️ Print ID Card
+                </button>
+                <a th:href="@{/idcard/front/{e}.png(e=${empno})}" download class="btn" style="background: #0275d8; color: white; padding: 10px 25px; border-radius: 6px;
                       text-decoration: none; font-size: 15px; margin-right: 10px;">
-                ⬇ Download Front
-            </a>
-            <a th:href="@{/idcard/back/{e}.png(e=${empno})}" download class="btn"
-               style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px;
+                    ⬇ Download Front
+                </a>
+                <a th:href="@{/idcard/back/{e}.png(e=${empno})}" download class="btn" style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px;
                       text-decoration: none; font-size: 15px;">
-                ⬇ Download Back
+                    ⬇ Download Back
+                </a>
+            </div>
+
+            <div id="id-cards" style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
+                <!-- Front Card -->
+                <div style="text-align: center;">
+                    <h3 style="color: #1a237e; margin-bottom: 10px;">Front Side</h3>
+                    <div style="border: 2px solid #999; border-radius: 8px; overflow: hidden; display: inline-block;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                        <img th:src="@{/idcard/front/{e}.png(e=${empno})}" alt="ID Card Front"
+                            style="display: block; max-width: 595px; height: auto;"
+                            onerror="this.parentElement.innerHTML='<div style=\'padding: 40px; color: #d9534f;\'>Staff member not found</div>'">
+                    </div>
+                </div>
+
+                <!-- Back Card -->
+                <div style="text-align: center;">
+                    <h3 style="color: #1a237e; margin-bottom: 10px;">Back Side</h3>
+                    <div style="border: 2px solid #999; border-radius: 8px; overflow: hidden; display: inline-block;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                        <img th:src="@{/idcard/back/{e}.png(e=${empno})}" alt="ID Card Back"
+                            style="display: block; max-width: 595px; height: auto;">
+                    </div>
+                </div>
+            </div>
+
+            <p style="color: #666; margin-top: 15px; font-size: 13px;">
+                Card dimensions: 1190 × 754 px (standard CR80 at 150 DPI).
+                Place Front.jpg / Back.jpg in static/images/ for custom backgrounds.
+            </p>
+        </div>
+
+        <div th:unless="${showCard}" style="text-align: center; padding: 50px; color: #888;">
+            <p style="font-size: 18px;">Enter an employee number above to generate a printable ID card.</p>
+            <p>The card will include the staff photo, name, designation, NIC, employee number, and expiry date.</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 25px;">
+            <a th:href="@{/dashboard}" class="btn"
+                style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none;">
+                ← Back to Dashboard
             </a>
         </div>
-
-        <div id="id-cards" style="display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
-            <!-- Front Card -->
-            <div style="text-align: center;">
-                <h3 style="color: #1a237e; margin-bottom: 10px;">Front Side</h3>
-                <div style="border: 2px solid #999; border-radius: 8px; overflow: hidden; display: inline-block;
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
-                    <img th:src="@{/idcard/front/{e}.png(e=${empno})}"
-                         alt="ID Card Front"
-                         style="display: block; max-width: 595px; height: auto;"
-                         onerror="this.parentElement.innerHTML='<div style=\'padding: 40px; color: #d9534f;\'>Staff member not found</div>'">
-                </div>
-            </div>
-
-            <!-- Back Card -->
-            <div style="text-align: center;">
-                <h3 style="color: #1a237e; margin-bottom: 10px;">Back Side</h3>
-                <div style="border: 2px solid #999; border-radius: 8px; overflow: hidden; display: inline-block;
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
-                    <img th:src="@{/idcard/back/{e}.png(e=${empno})}"
-                         alt="ID Card Back"
-                         style="display: block; max-width: 595px; height: auto;">
-                </div>
-            </div>
-        </div>
-
-        <p style="color: #666; margin-top: 15px; font-size: 13px;">
-            Card dimensions: 1190 × 754 px (standard CR80 at 150 DPI).
-            Place Front.jpg / Back.jpg in static/images/ for custom backgrounds.
-        </p>
     </div>
 
-    <div th:unless="${showCard}" style="text-align: center; padding: 50px; color: #888;">
-        <p style="font-size: 18px;">Enter an employee number above to generate a printable ID card.</p>
-        <p>The card will include the staff photo, name, designation, NIC, employee number, and expiry date.</p>
-    </div>
+    <!-- Print-specific styles -->
+    <style>
+        @media print {
 
-    <div style="text-align: center; margin-top: 25px;">
-        <a th:href="@{/dashboard}" class="btn"
-           style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none;">
-            ← Back to Dashboard
-        </a>
-    </div>
-</div>
+            header,
+            nav,
+            footer,
+            .btn,
+            form,
+            h2,
+            p {
+                display: none !important;
+            }
 
-<!-- Print-specific styles -->
-<style>
-    @media print {
-        header, nav, footer, .btn, form, h2, p { display: none !important; }
-        #id-cards { display: block !important; }
-        #id-cards > div { page-break-after: always; margin: 0; }
-        #id-cards img { max-width: 100% !important; }
-        .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-    }
-</style>
+            #id-cards {
+                display: block !important;
+            }
 
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+            #id-cards>div {
+                page-break-after: always;
+                margin: 0;
+            }
+
+            #id-cards img {
+                max-width: 100% !important;
+            }
+
+            .container {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
+    </style>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
+
 </html>

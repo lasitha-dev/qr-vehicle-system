@@ -1,210 +1,206 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head}"></head>
+
 <body>
-<header th:replace="~{fragments/layout :: header}"></header>
-<nav th:replace="~{fragments/layout :: nav}"></nav>
+    <header th:replace="~{fragments/layout :: header}"></header>
 
-<div class="container" style="max-width: 750px; margin: 30px auto; padding: 0 20px;">
-    <h2 style="color: #800000; text-align: center; margin-bottom: 25px;">🚘 Vehicle Number Plate Scanner</h2>
+    <div class="container" style="max-width: 750px; margin: 30px auto; padding: 0 20px;">
+        <h2 style="color: #800000; text-align: center; margin-bottom: 25px;">🚘 Vehicle Number Plate Scanner</h2>
 
-    <!-- Scanner Section -->
-    <div style="background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 25px;">
-        <div style="background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 15px 20px;">
-            <h3 style="margin: 0;">📸 Scan or Upload Vehicle Number Plate</h3>
-        </div>
-        <div style="padding: 25px; text-align: center;">
-            <!-- File Upload -->
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 10px; font-size: 15px;">
-                    Select an image from gallery:
-                </label>
-                <input type="file" accept="image/*" id="fileInput"
-                       style="padding: 8px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
+        <!-- Scanner Section -->
+        <div
+            style="background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 25px;">
+            <div style="background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 15px 20px;">
+                <h3 style="margin: 0;">📸 Scan or Upload Vehicle Number Plate</h3>
             </div>
+            <div style="padding: 25px; text-align: center;">
+                <!-- File Upload -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 10px; font-size: 15px;">
+                        Select an image from gallery:
+                    </label>
+                    <input type="file" accept="image/*" id="fileInput"
+                        style="padding: 8px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px;">
+                </div>
 
-            <!-- Camera Scan -->
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 10px; font-size: 15px;">
-                    Or scan with camera:
-                </label>
-                <input type="file" accept="image/*" capture="environment" id="cameraInput"
-                       style="display: none;">
-                <button onclick="document.getElementById('cameraInput').click();"
-                        style="background: #4caf50; color: white; padding: 12px 30px; border: none;
+                <!-- Camera Scan -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 10px; font-size: 15px;">
+                        Or scan with camera:
+                    </label>
+                    <input type="file" accept="image/*" capture="environment" id="cameraInput" style="display: none;">
+                    <button onclick="document.getElementById('cameraInput').click();" style="background: #4caf50; color: white; padding: 12px 30px; border: none;
                                border-radius: 6px; font-size: 16px; cursor: pointer;">
-                    📷 Open Camera
-                </button>
-            </div>
-
-            <hr style="margin: 20px 0; border-color: #eee;">
-
-            <!-- Manual Entry -->
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 10px; font-size: 15px;">
-                    Or enter vehicle number manually:
-                </label>
-                <div style="display: inline-flex; gap: 10px; align-items: center;">
-                    <input type="text" id="manualInput" placeholder="e.g. ABC-1234"
-                           style="padding: 10px 15px; border: 2px solid #ddd; border-radius: 6px;
-                                  font-size: 16px; width: 200px; text-transform: uppercase;">
-                    <button onclick="handleManualEntry();"
-                            style="background: #0275d8; color: white; padding: 10px 25px; border: none;
-                                   border-radius: 6px; font-size: 15px; cursor: pointer;">
-                        🔍 Search
+                        📷 Open Camera
                     </button>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Preview + Result Section -->
-    <div id="resultSection" style="display: none; background: white; border-radius: 10px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 25px;">
-        <div style="background: #37474f; color: white; padding: 15px 20px;">
-            <h3 style="margin: 0;" id="resultTitle">Processing...</h3>
-        </div>
-        <div style="padding: 25px; text-align: center;">
-            <!-- Image preview -->
-            <div id="imagePreview" style="margin-bottom: 15px;">
-                <img id="previewImg" style="max-width: 100%; max-height: 300px; border-radius: 8px;
-                            border: 2px solid #ddd;" alt="Scanned image">
-            </div>
+                <hr style="margin: 20px 0; border-color: #eee;">
 
-            <!-- Progress bar -->
-            <div id="progressSection" style="margin-bottom: 15px;">
-                <div style="background: #e0e0e0; border-radius: 10px; overflow: hidden; height: 24px;">
-                    <div id="progressBar"
-                         style="background: linear-gradient(90deg, #4caf50, #66bb6a); height: 100%;
-                                width: 0%; transition: width 0.3s; text-align: center;
-                                color: white; font-size: 13px; line-height: 24px;">
-                        0%
+                <!-- Manual Entry -->
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 10px; font-size: 15px;">
+                        Or enter vehicle number manually:
+                    </label>
+                    <div style="display: inline-flex; gap: 10px; align-items: center;">
+                        <input type="text" id="manualInput" placeholder="e.g. ABC-1234" style="padding: 10px 15px; border: 2px solid #ddd; border-radius: 6px;
+                                  font-size: 16px; width: 200px; text-transform: uppercase;">
+                        <button onclick="handleManualEntry();" style="background: #0275d8; color: white; padding: 10px 25px; border: none;
+                                   border-radius: 6px; font-size: 15px; cursor: pointer;">
+                            🔍 Search
+                        </button>
                     </div>
                 </div>
-                <p id="progressText" style="color: #666; margin-top: 8px; font-size: 14px;">Initializing OCR...</p>
             </div>
+        </div>
 
-            <!-- Result -->
-            <div id="ocrResult" style="display: none;">
-                <p style="font-size: 14px; color: #666; margin-bottom: 5px;">Detected Vehicle Number:</p>
-                <p id="detectedNumber"
-                   style="font-size: 28px; font-weight: bold; color: #1a237e; font-family: monospace;
+        <!-- Preview + Result Section -->
+        <div id="resultSection" style="display: none; background: white; border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 25px;">
+            <div style="background: #37474f; color: white; padding: 15px 20px;">
+                <h3 style="margin: 0;" id="resultTitle">Processing...</h3>
+            </div>
+            <div style="padding: 25px; text-align: center;">
+                <!-- Image preview -->
+                <div id="imagePreview" style="margin-bottom: 15px;">
+                    <img id="previewImg" style="max-width: 100%; max-height: 300px; border-radius: 8px;
+                            border: 2px solid #ddd;" alt="Scanned image">
+                </div>
+
+                <!-- Progress bar -->
+                <div id="progressSection" style="margin-bottom: 15px;">
+                    <div style="background: #e0e0e0; border-radius: 10px; overflow: hidden; height: 24px;">
+                        <div id="progressBar" style="background: linear-gradient(90deg, #4caf50, #66bb6a); height: 100%;
+                                width: 0%; transition: width 0.3s; text-align: center;
+                                color: white; font-size: 13px; line-height: 24px;">
+                            0%
+                        </div>
+                    </div>
+                    <p id="progressText" style="color: #666; margin-top: 8px; font-size: 14px;">Initializing OCR...</p>
+                </div>
+
+                <!-- Result -->
+                <div id="ocrResult" style="display: none;">
+                    <p style="font-size: 14px; color: #666; margin-bottom: 5px;">Detected Vehicle Number:</p>
+                    <p id="detectedNumber" style="font-size: 28px; font-weight: bold; color: #1a237e; font-family: monospace;
                           background: #f5f5f5; padding: 15px; border-radius: 8px; letter-spacing: 2px;">
-                </p>
-                <div style="margin-top: 15px;">
-                    <a id="searchBtn" href="#"
-                       style="background: #800000; color: white; padding: 12px 30px; border-radius: 6px;
+                    </p>
+                    <div style="margin-top: 15px;">
+                        <a id="searchBtn" href="#" style="background: #800000; color: white; padding: 12px 30px; border-radius: 6px;
                               text-decoration: none; font-size: 16px; display: inline-block;">
-                        🔍 Search This Vehicle
-                    </a>
+                            🔍 Search This Vehicle
+                        </a>
+                    </div>
+                </div>
+
+                <!-- No result -->
+                <div id="noResult" style="display: none; color: #d9534f; font-size: 16px; padding: 15px;">
+                    ⚠️ No valid vehicle number detected. Please try another image or enter manually.
                 </div>
             </div>
+        </div>
 
-            <!-- No result -->
-            <div id="noResult" style="display: none; color: #d9534f; font-size: 16px; padding: 15px;">
-                ⚠️ No valid vehicle number detected. Please try another image or enter manually.
-            </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <a th:href="@{/dashboard}" class="btn"
+                style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none;">
+                ← Back to Dashboard
+            </a>
         </div>
     </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <a th:href="@{/dashboard}" class="btn"
-           style="background: #6c757d; color: white; padding: 10px 25px; border-radius: 6px; text-decoration: none;">
-            ← Back to Dashboard
-        </a>
-    </div>
-</div>
+    <!-- Tesseract.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-<!-- Tesseract.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script th:inline="javascript">
+        const baseUrl = /*[[@{/}]]*/ '/';
 
-<script th:inline="javascript">
-    const baseUrl = /*[[@{/}]]*/ '/';
+        document.getElementById('fileInput').addEventListener('change', handleImageSelect);
+        document.getElementById('cameraInput').addEventListener('change', handleImageSelect);
 
-    document.getElementById('fileInput').addEventListener('change', handleImageSelect);
-    document.getElementById('cameraInput').addEventListener('change', handleImageSelect);
-
-    function handleImageSelect(e) {
-        if (e.target.files && e.target.files[0]) {
-            const image = URL.createObjectURL(e.target.files[0]);
-            document.getElementById('previewImg').src = image;
-            runOCR(image);
+        function handleImageSelect(e) {
+            if (e.target.files && e.target.files[0]) {
+                const image = URL.createObjectURL(e.target.files[0]);
+                document.getElementById('previewImg').src = image;
+                runOCR(image);
+            }
         }
-    }
 
-    function handleManualEntry() {
-        const input = document.getElementById('manualInput').value.trim();
-        if (input) {
-            const vehicleNo = input.replace(/[^A-Za-z0-9-]/g, '');
-            window.location.href = baseUrl + 'vehicle/search?query=' + encodeURIComponent(vehicleNo);
+        function handleManualEntry() {
+            const input = document.getElementById('manualInput').value.trim();
+            if (input) {
+                const vehicleNo = input.replace(/[^A-Za-z0-9-]/g, '');
+                window.location.href = baseUrl + 'vehicle/search?query=' + encodeURIComponent(vehicleNo);
+            }
         }
-    }
 
-    // Enter key on manual input
-    document.getElementById('manualInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleManualEntry();
-        }
-    });
+        // Enter key on manual input
+        document.getElementById('manualInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleManualEntry();
+            }
+        });
 
-    async function runOCR(imageUrl) {
-        const resultSection = document.getElementById('resultSection');
-        const progressSection = document.getElementById('progressSection');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        const ocrResult = document.getElementById('ocrResult');
-        const noResult = document.getElementById('noResult');
-        const resultTitle = document.getElementById('resultTitle');
+        async function runOCR(imageUrl) {
+            const resultSection = document.getElementById('resultSection');
+            const progressSection = document.getElementById('progressSection');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const ocrResult = document.getElementById('ocrResult');
+            const noResult = document.getElementById('noResult');
+            const resultTitle = document.getElementById('resultTitle');
 
-        // Show result section
-        resultSection.style.display = 'block';
-        progressSection.style.display = 'block';
-        ocrResult.style.display = 'none';
-        noResult.style.display = 'none';
-        resultTitle.textContent = '⏳ Processing Image...';
+            // Show result section
+            resultSection.style.display = 'block';
+            progressSection.style.display = 'block';
+            ocrResult.style.display = 'none';
+            noResult.style.display = 'none';
+            resultTitle.textContent = '⏳ Processing Image...';
 
-        try {
-            const result = await Tesseract.recognize(imageUrl, 'eng', {
-                logger: (m) => {
-                    if (m.status === 'recognizing text') {
-                        const pct = Math.round(m.progress * 100);
-                        progressBar.style.width = pct + '%';
-                        progressBar.textContent = pct + '%';
-                        progressText.textContent = 'Recognizing text... ' + pct + '%';
-                    } else {
-                        progressText.textContent = m.status;
+            try {
+                const result = await Tesseract.recognize(imageUrl, 'eng', {
+                    logger: (m) => {
+                        if (m.status === 'recognizing text') {
+                            const pct = Math.round(m.progress * 100);
+                            progressBar.style.width = pct + '%';
+                            progressBar.textContent = pct + '%';
+                            progressText.textContent = 'Recognizing text... ' + pct + '%';
+                        } else {
+                            progressText.textContent = m.status;
+                        }
                     }
+                });
+
+                const rawText = result.data.text;
+                // Extract alphanumeric vehicle number (Sri Lankan format: XX-NNNN or XXX-NNNN)
+                const vehicleNo = rawText.replace(/[^A-Za-z0-9]/g, '');
+
+                progressSection.style.display = 'none';
+
+                if (vehicleNo && vehicleNo.length >= 4) {
+                    resultTitle.textContent = '✅ Vehicle Number Detected';
+                    document.getElementById('detectedNumber').textContent = vehicleNo;
+                    document.getElementById('searchBtn').href =
+                        baseUrl + 'vehicle/search?query=' + encodeURIComponent(vehicleNo);
+                    ocrResult.style.display = 'block';
+                } else {
+                    resultTitle.textContent = '❌ Detection Failed';
+                    noResult.style.display = 'block';
                 }
-            });
 
-            const rawText = result.data.text;
-            // Extract alphanumeric vehicle number (Sri Lankan format: XX-NNNN or XXX-NNNN)
-            const vehicleNo = rawText.replace(/[^A-Za-z0-9]/g, '');
-
-            progressSection.style.display = 'none';
-
-            if (vehicleNo && vehicleNo.length >= 4) {
-                resultTitle.textContent = '✅ Vehicle Number Detected';
-                document.getElementById('detectedNumber').textContent = vehicleNo;
-                document.getElementById('searchBtn').href =
-                    baseUrl + 'vehicle/search?query=' + encodeURIComponent(vehicleNo);
-                ocrResult.style.display = 'block';
-            } else {
-                resultTitle.textContent = '❌ Detection Failed';
+            } catch (err) {
+                console.error('OCR Error:', err);
+                progressSection.style.display = 'none';
+                resultTitle.textContent = '❌ Error';
+                noResult.textContent = 'OCR processing error: ' + err.message;
                 noResult.style.display = 'block';
             }
-
-        } catch (err) {
-            console.error('OCR Error:', err);
-            progressSection.style.display = 'none';
-            resultTitle.textContent = '❌ Error';
-            noResult.textContent = 'OCR processing error: ' + err.message;
-            noResult.style.display = 'block';
         }
-    }
-</script>
+    </script>
 
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
+
 </html>

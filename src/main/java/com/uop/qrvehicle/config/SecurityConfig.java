@@ -16,6 +16,8 @@ import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInit
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 /**
  * Spring Security Configuration
@@ -55,11 +57,17 @@ public class SecurityConfig {
                 
                 // Admin only
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/vehicle/insert/**", "/vehicle/delete/**").hasRole("ADMIN")
+                .requestMatchers("/vehicle/delete/**").hasRole("ADMIN")
                 .requestMatchers("/vehicle/certificate/**").hasRole("ADMIN")
                 .requestMatchers("/qr/generate/**").hasRole("ADMIN")
                 
-                // Admin and Entry
+                // Admin and Entry - vehicle insert/add
+                .requestMatchers("/vehicle/insert/**", "/vehicle/add").hasAnyRole("ADMIN", "ENTRY")
+                
+                // Searcher access to vehicle search
+                .requestMatchers("/vehicle/search/**").hasAnyRole("ADMIN", "ENTRY", "SEARCHER")
+                
+                // Admin and Entry - other vehicle operations
                 .requestMatchers("/vehicle/**").hasAnyRole("ADMIN", "ENTRY")
                 .requestMatchers("/certificate/**").hasAnyRole("ADMIN", "ENTRY")
                 
@@ -107,7 +115,7 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .addLogoutHandler(keycloakLogoutHandler)
-                .logoutSuccessHandler(oidcLogoutSuccessHandler())
+                .logoutSuccessHandler(compositeLogoutSuccessHandler())
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
@@ -125,16 +133,27 @@ public class SecurityConfig {
     }
 
     /**
-     * OIDC RP-Initiated Logout handler.
-     * Redirects to Keycloak end-session endpoint on logout.
-     * Falls back to /login?logout=true for form-login users.
+     * Composite logout handler that detects the authentication type.
+     * - For OIDC users (Keycloak/Google): uses OidcClientInitiatedLogoutSuccessHandler
+     * - For form-login users: uses SimpleUrlLogoutSuccessHandler
      */
     @Bean
-    public LogoutSuccessHandler oidcLogoutSuccessHandler() {
-        OidcClientInitiatedLogoutSuccessHandler handler =
+    public LogoutSuccessHandler compositeLogoutSuccessHandler() {
+        OidcClientInitiatedLogoutSuccessHandler oidcHandler =
             new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-        handler.setPostLogoutRedirectUri("{baseUrl}/login?logout=true");
-        return handler;
+        oidcHandler.setPostLogoutRedirectUri("{baseUrl}/login?logout=true");
+
+        SimpleUrlLogoutSuccessHandler formHandler = new SimpleUrlLogoutSuccessHandler();
+        formHandler.setDefaultTargetUrl("/login?logout=true");
+
+        return (request, response, authentication) -> {
+            if (authentication != null
+                    && authentication.getPrincipal() instanceof OidcUser) {
+                oidcHandler.onLogoutSuccess(request, response, authentication);
+            } else {
+                formHandler.onLogoutSuccess(request, response, authentication);
+            }
+        };
     }
 
     @Bean

@@ -28,11 +28,19 @@ public class KeycloakLogoutHandler implements LogoutHandler {
         // The Keycloak RP-initiated logout is handled via OidcClientInitiatedLogoutSuccessHandler
         // configured in SecurityConfig. This handler can perform additional cleanup if needed.
         
-        request.getSession().removeAttribute("oidc_uid");
-        request.getSession().removeAttribute("oidc_email");
-        request.getSession().removeAttribute("oidc_employee_type");
-        request.getSession().removeAttribute("oidc_name_with_initials");
-        request.getSession().removeAttribute("login_time");
-        request.getSession().removeAttribute("csrf_token");
+        // Use getSession(false) to avoid creating a new session if it was already invalidated
+        var session = request.getSession(false);
+        if (session != null) {
+            try {
+                session.removeAttribute("oidc_uid");
+                session.removeAttribute("oidc_email");
+                session.removeAttribute("oidc_employee_type");
+                session.removeAttribute("oidc_name_with_initials");
+                session.removeAttribute("login_time");
+                session.removeAttribute("csrf_token");
+            } catch (IllegalStateException e) {
+                // Session was already invalidated, nothing to clean up
+            }
+        }
     }
 }

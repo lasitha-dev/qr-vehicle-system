@@ -32,6 +32,9 @@ body {
     background: var(--light-bg);
     color: var(--text-color);
     line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ================================
@@ -170,6 +173,7 @@ body {
     max-width: 1000px;
     margin: 30px auto;
     padding: 0 20px;
+    flex: 1;
 }
 
 .card {
@@ -306,7 +310,7 @@ select.form-control {
     color: #f0f0f0;
     text-align: center;
     padding: 20px;
-    margin-top: 40px;
+    margin-top: auto;
     font-size: 14px;
 }
 
