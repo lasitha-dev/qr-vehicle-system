@@ -1,5 +1,6 @@
 package com.uop.qrvehicle.service;
 
+import com.uop.qrvehicle.dto.PersonDropdownItem;
 import com.uop.qrvehicle.dto.PersonSearchResult;
 import com.uop.qrvehicle.dto.StudentDetailDTO;
 import com.uop.qrvehicle.model.*;
@@ -36,6 +37,58 @@ public class PersonService {
         this.visitorRepository = visitorRepository;
         this.vehicleRepository = vehicleRepository;
         this.studentService = studentService;
+    }
+
+    /**
+     * List all permanent staff for dropdown.
+     * Mirrors PHP: SELECT s.EmpNo AS id, CONCAT(s.EmpNo, ' - ', s.EmpNm, ' (Permanent)') AS label
+     */
+    public List<PersonDropdownItem> listPermanentStaff() {
+        try {
+            return staffRepository.findAllLatestRecords().stream()
+                    .map(s -> new PersonDropdownItem(
+                            s.getEmpNo(),
+                            s.getEmpNo() + " - " + s.getEmpName() + " (Permanent)"))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Error listing permanent staff: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * List temporary/casual/contract/institute staff filtered by category.
+     * Mirrors PHP: SELECT EmpNo AS id, CONCAT(EmpNo,' - ',EmpNm,' (',EmpCat1Nm,')') AS label
+     *              FROM temporarystaff WHERE EmpCat1Nm LIKE ?
+     */
+    public List<PersonDropdownItem> listStaffByCategory(String category) {
+        try {
+            return temporaryStaffRepository.findByCategory(category).stream()
+                    .map(s -> new PersonDropdownItem(
+                            s.getEmpNo(),
+                            s.getEmpNo() + " - " + s.getEmpName() + " (" + s.getCategory() + ")"))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Error listing staff by category {}: {}", category, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * List all visitors for dropdown.
+     * Mirrors PHP: SELECT ID AS id, CONCAT(ID, ' - ', Name, ' (Visitor)') AS label FROM visitor
+     */
+    public List<PersonDropdownItem> listVisitors() {
+        try {
+            return visitorRepository.findAllByOrderByIdDesc().stream()
+                    .map(v -> new PersonDropdownItem(
+                            v.getId(),
+                            v.getId() + " - " + v.getName() + " (Visitor)"))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Error listing visitors: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 
     /**

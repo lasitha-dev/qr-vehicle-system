@@ -89,10 +89,20 @@ public class VehicleService {
     }
 
     /**
-     * Update an existing vehicle
+     * Update an existing vehicle (legacy - without new fields)
      */
     public Vehicle updateVehicle(String empId, String oldVehicleNo, String newVehicleNo,
                                  String owner, String approvalStatus, String updatedBy) {
+        return updateVehicle(empId, oldVehicleNo, newVehicleNo, owner, approvalStatus, 
+                            null, null, null, updatedBy);
+    }
+
+    /**
+     * Update an existing vehicle with all fields
+     */
+    public Vehicle updateVehicle(String empId, String oldVehicleNo, String newVehicleNo,
+                                 String owner, String approvalStatus, Integer vehicleTypeId,
+                                 String mobile, String email, String updatedBy) {
         Vehicle vehicle = vehicleRepository.findByEmpIdAndVehicleNo(empId, oldVehicleNo)
             .orElseThrow(() -> new IllegalArgumentException("Vehicle not found"));
 
@@ -105,15 +115,31 @@ public class VehicleService {
             newVehicle.setVehicleNo(newVehicleNo.toUpperCase());
             newVehicle.setOwner(owner);
             newVehicle.setType(vehicle.getType());
+            newVehicle.setMobile(mobile != null ? mobile : vehicle.getMobile());
+            newVehicle.setEmail(email != null ? email : vehicle.getEmail());
+            newVehicle.setVehicleType(vehicle.getVehicleType());
             newVehicle.setApprovalStatus(approvalStatus != null ? approvalStatus : vehicle.getApprovalStatus());
             newVehicle.setCreatedBy(updatedBy);
             newVehicle.setCreateDate(LocalDateTime.now());
+
+            if (vehicleTypeId != null) {
+                vehicleTypeRepository.findById(vehicleTypeId)
+                    .ifPresent(newVehicle::setVehicleType);
+            }
+
             return vehicleRepository.save(newVehicle);
         }
         
         vehicle.setOwner(owner);
+        if (mobile != null) vehicle.setMobile(mobile);
+        if (email != null) vehicle.setEmail(email);
         vehicle.setApprovalStatus(approvalStatus != null ? approvalStatus : vehicle.getApprovalStatus());
         vehicle.setCreatedBy(updatedBy);
+
+        if (vehicleTypeId != null) {
+            vehicleTypeRepository.findById(vehicleTypeId)
+                .ifPresent(vehicle::setVehicleType);
+        }
 
         return vehicleRepository.save(vehicle);
     }

@@ -62,19 +62,6 @@ public class Vehicle {
     @Column(name = "ApprovalDate")
     private LocalDateTime approvalDate;
 
-    // Notification tracking fields
-    @Column(name = "email_sent")
-    private Boolean emailSent;
-
-    @Column(name = "change_email_sent")
-    private Boolean changeEmailSent;
-
-    @Column(name = "cert_viewed_at")
-    private LocalDateTime certViewedAt;
-
-    @Column(name = "last_notified_status", length = 20)
-    private String lastNotifiedStatus;
-
     // Pre-persist hook to set creation date
     @PrePersist
     protected void onCreate() {

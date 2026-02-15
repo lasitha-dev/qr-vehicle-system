@@ -88,7 +88,7 @@ public class SecurityConfig {
                 .requestMatchers("/idcard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
                 
                 // REST API endpoints (authenticated)
-                .requestMatchers("/api/vehicle/**", "/api/user/**", "/api/person/**").authenticated()
+                .requestMatchers("/api/vehicle/**", "/api/user/**", "/api/person/**", "/api/persons/**").authenticated()
                 .requestMatchers("/api/students/**").authenticated()
                 
                 // Dashboard for all authenticated users

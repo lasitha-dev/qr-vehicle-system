@@ -4,6 +4,8 @@ import com.uop.qrvehicle.model.Vehicle;
 import com.uop.qrvehicle.security.CustomUserDetails;
 import com.uop.qrvehicle.service.CertificateService;
 import com.uop.qrvehicle.service.VehicleService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -22,6 +24,8 @@ import java.util.List;
 @RequestMapping("/vehicle")
 public class VehicleController {
 
+    private static final Logger log = LoggerFactory.getLogger(VehicleController.class);
+
     private final VehicleService vehicleService;
     private final CertificateService certificateService;
 
@@ -39,19 +43,26 @@ public class VehicleController {
     public String insertForm(@RequestParam(required = false) String category,
                             @RequestParam(required = false) String id,
                             Model model) {
-        
-        model.addAttribute("category", category);
-        model.addAttribute("selectedId", id);
-        
-        // Add vehicle types for dropdown
-        model.addAttribute("vehicleTypes", vehicleService.getActiveVehicleTypes());
-        
-        if (id != null && !id.isEmpty()) {
-            List<Vehicle> vehicles = vehicleService.getVehiclesByEmpId(id);
-            model.addAttribute("vehicles", vehicles);
+        try {
+            log.debug("insertForm called: category={}, id={}", category, id);
+            
+            model.addAttribute("category", category);
+            model.addAttribute("selectedId", id);
+            
+            // Add vehicle types for dropdown
+            model.addAttribute("vehicleTypes", vehicleService.getActiveVehicleTypes());
+            
+            if (id != null && !id.isEmpty()) {
+                List<Vehicle> vehicles = vehicleService.getVehiclesByEmpId(id);
+                model.addAttribute("vehicles", vehicles);
+                log.debug("Found {} vehicles for id={}", vehicles.size(), id);
+            }
+            
+            return "vehicle/insert";
+        } catch (Exception e) {
+            log.error("Error in insertForm: category={}, id={}", category, id, e);
+            throw e;
         }
-        
-        return "vehicle/insert";
     }
 
     /**
@@ -100,6 +111,9 @@ public class VehicleController {
                                @RequestParam String vehicleNo,
                                @RequestParam(required = false) String owner,
                                @RequestParam(required = false) String approvalStatus,
+                               @RequestParam(required = false) Integer vehicleTypeId,
+                               @RequestParam(required = false) String mobile,
+                               @RequestParam(required = false) String email,
                                @RequestParam(value = "certificate", required = false) MultipartFile certificate,
                                Authentication authentication,
                                RedirectAttributes redirectAttributes) {
@@ -108,7 +122,7 @@ public class VehicleController {
             
             // Update vehicle
             vehicleService.updateVehicle(id, oldVehicleNo, vehicleNo, owner, 
-                                        approvalStatus, username);
+                                        approvalStatus, vehicleTypeId, mobile, email, username);
             
             // Upload new certificate if provided
             if (certificate != null && !certificate.isEmpty()) {
@@ -120,6 +134,24 @@ public class VehicleController {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
         
+        return "redirect:/vehicle/insert?category=" + category + "&id=" + id;
+    }
+
+    /**
+     * Delete vehicle
+     */
+    @PostMapping("/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String deleteVehicle(@RequestParam String category,
+                               @RequestParam String id,
+                               @RequestParam String vehicleNo,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            vehicleService.deleteVehicle(id, vehicleNo);
+            redirectAttributes.addFlashAttribute("success", "Vehicle deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
+        }
         return "redirect:/vehicle/insert?category=" + category + "&id=" + id;
     }
 

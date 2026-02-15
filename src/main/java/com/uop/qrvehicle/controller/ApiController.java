@@ -1,5 +1,6 @@
 package com.uop.qrvehicle.controller;
 
+import com.uop.qrvehicle.dto.PersonDropdownItem;
 import com.uop.qrvehicle.dto.PersonSearchResult;
 import com.uop.qrvehicle.model.Staff;
 import com.uop.qrvehicle.model.Vehicle;
@@ -409,5 +410,59 @@ public class ApiController {
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    // =========================================================================
+    // 6. LIST PERSONS BY CATEGORY  (for vehicle insert dropdown)
+    //    GET /api/persons/list?category=permanent|temporary|casual|contract|institute|visitor
+    // =========================================================================
+    @GetMapping("/persons/list")
+    public ResponseEntity<List<PersonDropdownItem>> listPersonsByCategory(
+            @RequestParam String category) {
+
+        List<PersonDropdownItem> items;
+
+        switch (category.toLowerCase()) {
+            case "permanent":
+                items = personService.listPermanentStaff();
+                break;
+            case "temporary":
+            case "casual":
+            case "contract":
+            case "institute":
+                items = personService.listStaffByCategory(category);
+                break;
+            case "visitor":
+                items = personService.listVisitors();
+                break;
+            default:
+                items = List.of();
+                break;
+        }
+
+        return ResponseEntity.ok(items);
+    }
+
+    // =========================================================================
+    // 7. STUDENT CASCADE DROPDOWNS  (for vehicle insert)
+    //    GET /api/students/faculties
+    //    GET /api/students/years?faculty=X
+    //    GET /api/students/list?faculty=X&year=Y
+    // =========================================================================
+    @GetMapping("/students/faculties")
+    public ResponseEntity<List<String>> getStudentFaculties() {
+        return ResponseEntity.ok(studentService.getDistinctFaculties());
+    }
+
+    @GetMapping("/students/years")
+    public ResponseEntity<List<String>> getStudentYears(@RequestParam String faculty) {
+        return ResponseEntity.ok(studentService.getYearsByFaculty(faculty));
+    }
+
+    @GetMapping("/students/list")
+    public ResponseEntity<List<PersonDropdownItem>> getStudentsList(
+            @RequestParam String faculty,
+            @RequestParam String year) {
+        return ResponseEntity.ok(studentService.getStudentsByFacultyAndYear(faculty, year));
     }
 }

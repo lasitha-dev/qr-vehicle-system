@@ -1,5 +1,6 @@
 package com.uop.qrvehicle.service;
 
+import com.uop.qrvehicle.dto.PersonDropdownItem;
 import com.uop.qrvehicle.dto.StudentDetailDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,6 +271,88 @@ public class StudentService {
         } catch (Exception e) {
             log.error("Error getting student basic info for {}: {}", regNo, e.getMessage());
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Get distinct faculty prefixes from registered students.
+     * Mirrors PHP: SELECT DISTINCT SUBSTRING_INDEX(Reg_No,'/',1) AS faculty_prefix
+     *              FROM stud WHERE Status='REGISTERED' ORDER BY faculty_prefix
+     */
+    public List<String> getDistinctFaculties() {
+        try {
+            String sql = """
+                SELECT DISTINCT SUBSTRING_INDEX(Reg_No,'/',1) AS faculty_prefix
+                FROM stud
+                WHERE Status='REGISTERED'
+                ORDER BY faculty_prefix ASC
+                """;
+            return studDbJdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("faculty_prefix"));
+        } catch (Exception e) {
+            log.error("Error fetching distinct faculties: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Get distinct academic years for a given faculty prefix.
+     * Mirrors PHP: SELECT DISTINCT CASE WHEN LENGTH(...)=2 THEN CONCAT('20',...) ELSE ... END AS YearFull
+     *              FROM stud WHERE Status='REGISTERED' AND Reg_No LIKE '{faculty}/%'
+     */
+    public List<String> getYearsByFaculty(String faculty) {
+        try {
+            String sql = """
+                SELECT DISTINCT
+                    CASE
+                        WHEN LENGTH(SUBSTRING_INDEX(SUBSTRING_INDEX(Reg_No,'/',2),'/',-1)) = 2
+                            THEN CONCAT('20', SUBSTRING_INDEX(SUBSTRING_INDEX(Reg_No,'/',2),'/',-1))
+                        ELSE SUBSTRING_INDEX(SUBSTRING_INDEX(Reg_No,'/',2),'/',-1)
+                    END AS YearFull
+                FROM stud
+                WHERE Status='REGISTERED' AND Reg_No LIKE ?
+                ORDER BY YearFull ASC
+                """;
+            return studDbJdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("YearFull"),
+                    faculty + "/%");
+        } catch (Exception e) {
+            log.error("Error fetching years for faculty {}: {}", faculty, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Get all registered students for a given faculty and year.
+     * Mirrors PHP: SELECT Reg_No AS id, Reg_No AS label FROM stud
+     *              WHERE Status='REGISTERED' AND Reg_No LIKE CONCAT(?, '/%') AND (year) = ?
+     */
+    public List<PersonDropdownItem> getStudentsByFacultyAndYear(String faculty, String year) {
+        try {
+            String sql = """
+                SELECT s.Reg_No, COALESCE(sb.Full_Name, '') AS Full_Name
+                FROM stud s
+                LEFT JOIN studbasic sb ON s.NIC = sb.NIC
+                WHERE s.Status='REGISTERED'
+                  AND s.Reg_No LIKE ?
+                  AND (
+                    CASE
+                        WHEN LENGTH(SUBSTRING_INDEX(SUBSTRING_INDEX(s.Reg_No,'/',2),'/',-1)) = 2
+                            THEN CONCAT('20', SUBSTRING_INDEX(SUBSTRING_INDEX(s.Reg_No,'/',2),'/',-1))
+                        ELSE SUBSTRING_INDEX(SUBSTRING_INDEX(s.Reg_No,'/',2),'/',-1)
+                    END
+                  ) = ?
+                ORDER BY s.Reg_No ASC
+                """;
+            return studDbJdbcTemplate.query(sql, (rs, rowNum) -> {
+                String regNo = rs.getString("Reg_No");
+                String fullName = rs.getString("Full_Name");
+                String label = fullName != null && !fullName.isEmpty()
+                        ? regNo + " - " + fullName
+                        : regNo;
+                return new PersonDropdownItem(regNo, label);
+            }, faculty + "/%", year);
+        } catch (Exception e) {
+            log.error("Error fetching students for faculty={}, year={}: {}", faculty, year, e.getMessage(), e);
+            return Collections.emptyList();
         }
     }
 
