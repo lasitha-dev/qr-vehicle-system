@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
  * Note: Uses same structure as slipspaymentsdetailall with composite key (SalDt, EmpNo)
  */
 @Entity
-@Table(name = "slipspaymentsdetailall")
-@IdClass(StaffId.class)
+@Table(name = "temporarystaff")
+@IdClass(TemporaryStaffId.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,6 +32,7 @@ public class TemporaryStaff {
     @Column(name = "DesgNm")
     private String designation;
 
+    @Id
     @Column(name = "EmpCat1Nm")
     private String category; // Temporary, Casual, Contract, Institute
 

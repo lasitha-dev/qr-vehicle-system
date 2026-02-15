@@ -72,18 +72,12 @@ public class DashboardController {
 
         switch (role) {
             case "admin":
-                tasks.add(new TaskDTO("Insert New Vehicle", "/vehicle/insert", "🚗", "#f0ad4e"));
-                tasks.add(new TaskDTO("QR Generator", "/qr/generate", "📝", "#5cb85c"));
-                tasks.add(new TaskDTO("Student Details", "/student/detail", "🎓", "#17a2b8"));
-                tasks.add(new TaskDTO("Staff Details", "/staff/detail", "👔", "#6c757d"));
-                tasks.add(new TaskDTO("View/Update Images", "/view/images", "👁️", "#0275d8"));
-                tasks.add(new TaskDTO("Search Vehicle", "/vehicle/search", "🔍", "#6f42c1"));
-                tasks.add(new TaskDTO("Person Search", "/search/person", "🧑‍💼", "#ff851b"));
-                tasks.add(new TaskDTO("Pending Approvals", "/vehicle/pending", "⏳", "#d9534f"));
-                tasks.add(new TaskDTO("Plate Scanner", "/vehicle/scanner", "📷", "#795548"));
-                tasks.add(new TaskDTO("ID Card Preview", "/idcard/preview", "🪪", "#37474f"));
-                tasks.add(new TaskDTO("DB Backup", "/admin/backup", "🗄️", "#263238"));
-                tasks.add(new TaskDTO("Bulk Email", "/admin/email", "📧", "#1565c0"));
+                tasks.add(new TaskDTO("Admin / Insert New Vehicle", "/vehicle/insert", "🚗", "#f0ad4e"));
+                tasks.add(new TaskDTO("Admin / QR Generator", "/qr/generate", "📝", "#5cb85c"));
+                tasks.add(new TaskDTO("Admin / Image Task", "/view/images", "👁️", "#0275d8"));
+                tasks.add(new TaskDTO("Admin / Search Vehicle", "/vehicle/search", "🚗🔍", "#6f42c1")); // Updated icon
+                tasks.add(new TaskDTO("Admin / Person Search", "/search/person", "🧑‍💼", "#ff851b"));
+                tasks.add(new TaskDTO("Admin / User Role", "/my/vehicle", "👤", "#5bc0de")); // Mapped to Self-Service
                 break;
                 
             case "entry":

@@ -55,7 +55,7 @@ public class StaffService {
         }
 
         // Try temporary/casual/contract/institute
-        Optional<TemporaryStaff> tempOpt = temporaryStaffRepository.findByEmpNo(empNo);
+        Optional<TemporaryStaff> tempOpt = temporaryStaffRepository.findFirstByEmpNo(empNo);
         if (tempOpt.isPresent()) {
             return Optional.of(mapTemporaryStaff(tempOpt.get()));
         }

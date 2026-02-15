@@ -4,8 +4,12 @@ import com.uop.qrvehicle.dto.PersonSearchResult;
 import com.uop.qrvehicle.dto.StudentDetailDTO;
 import com.uop.qrvehicle.model.*;
 import com.uop.qrvehicle.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -13,6 +17,8 @@ import java.util.Optional;
  */
 @Service
 public class PersonService {
+
+    private static final Logger log = LoggerFactory.getLogger(PersonService.class);
 
     private final StaffRepository staffRepository;
     private final TemporaryStaffRepository temporaryStaffRepository;
@@ -43,38 +49,56 @@ public class PersonService {
 
         searchId = searchId.trim();
 
-        // Student pattern: e.g., "A/23/001" or similar
-        if (searchId.matches("^[A-Z]+/\\d{2}/.*")) {
-            return searchStudent(searchId);
+        try {
+            // Student pattern: e.g., "A/23/001" or similar
+            if (searchId.matches("^[A-Z]+/\\d{2}/.*")) {
+                return searchStudent(searchId);
+            }
+
+            // Permanent staff prefix
+            if (searchId.startsWith("PER_")) {
+                String empNo = searchId.replace("PER_", "");
+                return searchPermanentStaff(empNo);
+            }
+
+            // Temporary/Institute staff prefix
+            if (searchId.startsWith("TEM_") || searchId.startsWith("INS_")) {
+                String empNo = searchId.replaceAll("^(TEM_|INS_)", "");
+                return searchTemporaryStaff(empNo);
+            }
+
+            // Visitor prefix
+            if (searchId.startsWith("VIS_")) {
+                String visitorId = searchId.replace("VIS_", "");
+                return searchVisitor(visitorId);
+            }
+
+            // Try to find by employee number (no prefix)
+            Optional<PersonSearchResult> result = searchPermanentStaff(searchId);
+            if (result.isPresent()) return result;
+
+            result = searchTemporaryStaff(searchId);
+            if (result.isPresent()) return result;
+
+            // Try as visitor ID
+            return searchVisitor(searchId);
+        } catch (Exception e) {
+            log.error("Error searching for person with ID '{}': {}", searchId, e.getMessage(), e);
+            return Optional.empty();
         }
+    }
 
-        // Permanent staff prefix
-        if (searchId.startsWith("PER_")) {
-            String empNo = searchId.replace("PER_", "");
-            return searchPermanentStaff(empNo);
+    /**
+     * Safely load vehicles for a given person ID.
+     * Returns empty list if any error occurs during loading.
+     */
+    private List<Vehicle> safeLoadVehicles(String empId) {
+        try {
+            return vehicleRepository.findByEmpIdOrderByCreateDateDesc(empId);
+        } catch (Exception e) {
+            log.warn("Failed to load vehicles for '{}': {}", empId, e.getMessage());
+            return Collections.emptyList();
         }
-
-        // Temporary/Institute staff prefix
-        if (searchId.startsWith("TEM_") || searchId.startsWith("INS_")) {
-            String empNo = searchId.replaceAll("^(TEM_|INS_)", "");
-            return searchTemporaryStaff(empNo);
-        }
-
-        // Visitor prefix
-        if (searchId.startsWith("VIS_")) {
-            String visitorId = searchId.replace("VIS_", "");
-            return searchVisitor(visitorId);
-        }
-
-        // Try to find by employee number (no prefix)
-        Optional<PersonSearchResult> result = searchPermanentStaff(searchId);
-        if (result.isPresent()) return result;
-
-        result = searchTemporaryStaff(searchId);
-        if (result.isPresent()) return result;
-
-        // Try as visitor ID
-        return searchVisitor(searchId);
     }
 
     /**
@@ -93,7 +117,7 @@ public class PersonService {
                 result.setSemester(student.getSemesterName());
                 result.setGender(student.getGender());
                 result.setImageUrl(student.getImageUrl());
-                result.setVehicles(vehicleRepository.findByEmpIdOrderByCreateDateDesc(regNo));
+                result.setVehicles(safeLoadVehicles(regNo));
                 return result;
             });
     }
@@ -114,7 +138,7 @@ public class PersonService {
                 result.setNic(staff.getNic());
                 result.setGender(staff.getSex());
                 result.setEmployeeType(staff.getEmployeeType());
-                result.setVehicles(vehicleRepository.findByEmpIdOrderByCreateDateDesc(empNo));
+                result.setVehicles(safeLoadVehicles(empNo));
                 return result;
             });
     }
@@ -123,7 +147,7 @@ public class PersonService {
      * Search for temporary staff by employee number
      */
     public Optional<PersonSearchResult> searchTemporaryStaff(String empNo) {
-        return temporaryStaffRepository.findByEmpNo(empNo)
+        return temporaryStaffRepository.findFirstByEmpNo(empNo)
             .map(staff -> {
                 PersonSearchResult result = new PersonSearchResult();
                 result.setId(staff.getEmpNo());
@@ -134,7 +158,7 @@ public class PersonService {
                 result.setDepartment(staff.getDepartment());
                 result.setNic(staff.getNic());
                 result.setGender(staff.getSex());
-                result.setVehicles(vehicleRepository.findByEmpIdOrderByCreateDateDesc(empNo));
+                result.setVehicles(safeLoadVehicles(empNo));
                 return result;
             });
     }
@@ -152,7 +176,7 @@ public class PersonService {
                 result.setReason(visitor.getReason());
                 result.setDateFrom(visitor.getDateFrom());
                 result.setDateTo(visitor.getDateTo());
-                result.setVehicles(vehicleRepository.findByEmpIdOrderByCreateDateDesc(visitor.getId()));
+                result.setVehicles(safeLoadVehicles(visitor.getId()));
                 return result;
             });
     }

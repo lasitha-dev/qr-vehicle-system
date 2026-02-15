@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img th:src="@{/images/UoPcrest.jpg}" alt="Logo" class="logo">
+                <h1>Page Not Found</h1>
+            </div>
+            <div class="header-actions">
+                <a th:href="@{/dashboard}" class="btn btn-primary">⬅ Dashboard</a>
+                <a th:href="@{/logout}" class="btn btn-logout">Logout</a>
+            </div>
+        </div>
+    </header>
+    <div class="container" style="text-align: center; padding: 60px 20px;">
+        <h2 style="color: #f39c12; font-size: 48px;">404</h2>
+        <p style="font-size: 18px;">The page you are looking for could not be found.</p>
+        <a th:href="@{/dashboard}" class="btn btn-primary" style="margin-top: 20px;">Return to Dashboard</a>
+    </div>
+    <footer class="site-footer">
+        COPYRIGHT 2025 | INFORMATION TECHNOLOGY CENTER | UNIVERSITY OF PERADENIYA
+    </footer>
+</body>
+</html>

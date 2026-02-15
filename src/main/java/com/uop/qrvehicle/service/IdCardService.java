@@ -188,7 +188,7 @@ public class IdCardService {
         }
 
         // Try temporary staff
-        Optional<TemporaryStaff> tempOpt = temporaryStaffRepository.findByEmpNo(empNo);
+        Optional<TemporaryStaff> tempOpt = temporaryStaffRepository.findFirstByEmpNo(empNo);
         if (tempOpt.isPresent()) {
             TemporaryStaff t = tempOpt.get();
             StaffInfo info = new StaffInfo();

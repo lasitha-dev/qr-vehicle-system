@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,28 +55,40 @@ public class StaffController {
         }
 
         empno = empno.trim();
+        model.addAttribute("searchEmpNo", empno);
 
-        Optional<StaffDetailDTO> staffOpt = staffService.getStaffDetail(empno);
-        if (staffOpt.isEmpty()) {
-            model.addAttribute("error", "Staff member not found: " + empno);
-            model.addAttribute("searchEmpNo", empno);
-            return "staff/detail";
-        }
-
-        StaffDetailDTO staff = staffOpt.get();
-        model.addAttribute("staff", staff);
-
-        // Load vehicles
-        List<Vehicle> vehicles = vehicleRepository.findByEmpIdOrderByCreateDateDesc(empno);
-        model.addAttribute("vehicles", vehicles);
-
-        // Load certificates
         try {
-            String certCategory = staff.getCategory() != null ? staff.getCategory() : "Staff";
-            List<String> certificates = certificateService.listCertificates(certCategory, empno);
-            model.addAttribute("certificates", certificates);
+            Optional<StaffDetailDTO> staffOpt = staffService.getStaffDetail(empno);
+            if (staffOpt.isEmpty()) {
+                model.addAttribute("error", "Staff member not found: " + empno);
+                return "staff/detail";
+            }
+
+            StaffDetailDTO staff = staffOpt.get();
+            model.addAttribute("staff", staff);
+
+            // Load vehicles safely
+            List<Vehicle> vehicles;
+            try {
+                vehicles = vehicleRepository.findByEmpIdOrderByCreateDateDesc(empno);
+            } catch (Exception e) {
+                log.error("Error loading vehicles for staff {}: {}", empno, e.getMessage(), e);
+                vehicles = Collections.emptyList();
+            }
+            model.addAttribute("vehicles", vehicles);
+
+            // Load certificates
+            try {
+                String certCategory = staff.getCategory() != null ? staff.getCategory() : "Staff";
+                List<String> certificates = certificateService.listCertificates(certCategory, empno);
+                model.addAttribute("certificates", certificates);
+            } catch (Exception e) {
+                log.debug("Could not load certificates for {}: {}", empno, e.getMessage());
+            }
+
         } catch (Exception e) {
-            log.debug("Could not load certificates for {}: {}", empno, e.getMessage());
+            log.error("Error loading staff detail for {}: {}", empno, e.getMessage(), e);
+            model.addAttribute("error", "Error loading staff details for: " + empno + ". Please try again.");
         }
 
         return "staff/detail";

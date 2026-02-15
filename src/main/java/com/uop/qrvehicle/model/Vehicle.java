@@ -39,12 +39,12 @@ public class Vehicle {
     @JoinColumn(name = "vehicle_type_id")
     private VehicleType vehicleType;
 
-    // New: Mobile number field
-    @Column(name = "Mobile", length = 20)
+    // Mobile number field
+    @Column(name = "Mobile", length = 12)
     private String mobile;
 
-    // New: Email field
-    @Column(name = "Email", length = 100)
+    // Email field
+    @Column(name = "Email", columnDefinition = "text")
     private String email;
 
     @Column(name = "ApprovalStatus", columnDefinition = "enum('Pending','Approved','Rejected')")
@@ -61,6 +61,19 @@ public class Vehicle {
 
     @Column(name = "ApprovalDate")
     private LocalDateTime approvalDate;
+
+    // Notification tracking fields
+    @Column(name = "email_sent")
+    private Boolean emailSent;
+
+    @Column(name = "change_email_sent")
+    private Boolean changeEmailSent;
+
+    @Column(name = "cert_viewed_at")
+    private LocalDateTime certViewedAt;
+
+    @Column(name = "last_notified_status", length = 20)
+    private String lastNotifiedStatus;
 
     // Pre-persist hook to set creation date
     @PrePersist

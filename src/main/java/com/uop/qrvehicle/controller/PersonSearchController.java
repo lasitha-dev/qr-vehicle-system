@@ -2,6 +2,8 @@ package com.uop.qrvehicle.controller;
 
 import com.uop.qrvehicle.dto.PersonSearchResult;
 import com.uop.qrvehicle.service.PersonService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +20,8 @@ import java.util.Optional;
 @RequestMapping("/search")
 public class PersonSearchController {
 
+    private static final Logger log = LoggerFactory.getLogger(PersonSearchController.class);
+
     private final PersonService personService;
 
     public PersonSearchController(PersonService personService) {
@@ -33,14 +37,20 @@ public class PersonSearchController {
         String searchId = id != null ? id : regno;
         
         if (searchId != null && !searchId.trim().isEmpty()) {
-            Optional<PersonSearchResult> result = personService.searchPerson(searchId.trim());
-            
-            if (result.isPresent()) {
-                model.addAttribute("person", result.get());
-                model.addAttribute("found", true);
-            } else {
+            try {
+                Optional<PersonSearchResult> result = personService.searchPerson(searchId.trim());
+                
+                if (result.isPresent()) {
+                    model.addAttribute("person", result.get());
+                    model.addAttribute("found", true);
+                } else {
+                    model.addAttribute("found", false);
+                    model.addAttribute("notFoundMessage", "No record found for: " + searchId);
+                }
+            } catch (Exception e) {
+                log.error("Error processing person search for '{}': {}", searchId, e.getMessage(), e);
                 model.addAttribute("found", false);
-                model.addAttribute("notFoundMessage", "No record found for: " + searchId);
+                model.addAttribute("notFoundMessage", "Error searching for: " + searchId + ". Please try again.");
             }
             
             model.addAttribute("searchId", searchId);

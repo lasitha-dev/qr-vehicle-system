@@ -145,7 +145,7 @@ public class ApiController {
         }
 
         // Try temporary/contract/institute staff
-        var tempOpt = temporaryStaffRepository.findByEmpNo(userid);
+        var tempOpt = temporaryStaffRepository.findFirstByEmpNo(userid);
         if (tempOpt.isPresent()) {
             var temp = tempOpt.get();
             Map<String, Object> data = new LinkedHashMap<>();
@@ -295,7 +295,7 @@ public class ApiController {
             case "casual":
             case "contract":
             case "institute":
-                var tempOpt = temporaryStaffRepository.findByEmpNo(empid);
+                var tempOpt = temporaryStaffRepository.findFirstByEmpNo(empid);
                 if (tempOpt.isPresent()) {
                     var t = tempOpt.get();
                     person.put("EmpNo", t.getEmpNo());
@@ -335,7 +335,7 @@ public class ApiController {
                     person.put("BuNm", s.getDepartment());
                     found = true;
                 } else {
-                    var fallbackTemp = temporaryStaffRepository.findByEmpNo(empid);
+                    var fallbackTemp = temporaryStaffRepository.findFirstByEmpNo(empid);
                     if (fallbackTemp.isPresent()) {
                         var t = fallbackTemp.get();
                         person.put("EmpNo", t.getEmpNo());
