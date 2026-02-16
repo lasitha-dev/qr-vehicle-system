@@ -3,12 +3,16 @@ package com.uop.qrvehicle.controller;
 import com.uop.qrvehicle.dto.PersonSearchResult;
 import com.uop.qrvehicle.model.Staff;
 import com.uop.qrvehicle.repository.StaffRepository;
+import com.uop.qrvehicle.security.CustomUserDetails;
 import com.uop.qrvehicle.service.ImageService;
 import com.uop.qrvehicle.service.PersonService;
 import com.uop.qrvehicle.service.StudentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -59,11 +63,23 @@ public class ImageManagementController {
             @RequestParam(required = false) String id,
             @RequestParam(required = false) String faculty,
             @RequestParam(required = false) String year,
+            Authentication authentication,
             Model model) {
+
+        String userType = resolveUserType(authentication);
+        boolean lockedPermanent = personService.isAcademicUserType(userType) || personService.isNonAcademicUserType(userType);
+
+        if (lockedPermanent && category != null && !category.isBlank() && !"permanent".equalsIgnoreCase(category)) {
+            category = "Permanent";
+            id = null;
+        }
+
+        model.addAttribute("lockedPermanent", lockedPermanent);
+        model.addAttribute("userType", userType);
 
         // If we have both category and ID, show the detail view
         if (id != null && !id.trim().isEmpty() && category != null) {
-            return showImageDetail(category, id.trim(), model);
+            return showImageDetail(category, id.trim(), model, userType);
         }
 
         // Otherwise show the selection form
@@ -82,12 +98,25 @@ public class ImageManagementController {
     /**
      * Show image detail for a specific person
      */
-    private String showImageDetail(String category, String id, Model model) {
+    private String showImageDetail(String category, String id, Model model, String userType) {
         model.addAttribute("category", category);
         model.addAttribute("id", id);
 
+        if (!personService.isCategoryAllowedForUserType(category, userType)) {
+            model.addAttribute("error", "This category is not allowed for your user type.");
+            return "view/images";
+        }
+
         // Find person
         Optional<PersonSearchResult> personOpt = personService.searchPerson(id);
+        if ("permanent".equalsIgnoreCase(category)) {
+            Optional<Staff> staffOpt = staffRepository.findLatestByEmpNo(id);
+            if (staffOpt.isPresent() && !personService.canViewPermanentStaffForUserType(staffOpt.get(), userType)) {
+                model.addAttribute("error", "This staff record is not accessible for your user type.");
+                return "view/images";
+            }
+        }
+
         if (personOpt.isPresent()) {
             model.addAttribute("person", personOpt.get());
         }
@@ -112,6 +141,90 @@ public class ImageManagementController {
 
         model.addAttribute("showDetail", true);
         return "view/images";
+    }
+
+    @GetMapping("/detail")
+    @ResponseBody
+    @PreAuthorize("hasRole('VIEWER')")
+    public ResponseEntity<Map<String, Object>> getImageDetail(
+            @RequestParam String category,
+            @RequestParam String id,
+            Authentication authentication) {
+
+        String trimmedId = id != null ? id.trim() : "";
+        String userType = resolveUserType(authentication);
+
+        if (trimmedId.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "ID is required"));
+        }
+        if (!personService.isCategoryAllowedForUserType(category, userType)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "This category is not allowed for your user type"));
+        }
+
+        Optional<PersonSearchResult> personOpt = personService.searchPerson(trimmedId);
+        if (personOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Person not found"));
+        }
+
+        PersonSearchResult person = personOpt.get();
+        if ("permanent".equalsIgnoreCase(category)) {
+            Optional<Staff> staffOpt = staffRepository.findLatestByEmpNo(trimmedId);
+            if (staffOpt.isPresent() && !personService.canViewPermanentStaffForUserType(staffOpt.get(), userType)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "This staff record is not accessible for your user type"));
+            }
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("id", person.getId());
+        response.put("type", person.getType());
+        response.put("name", person.getName());
+        response.put("designation", person.getDesignation());
+        response.put("department", person.getDepartment());
+        response.put("category", person.getCategory());
+        response.put("nic", person.getNic());
+        response.put("employeeType", person.getEmployeeType());
+
+        String imageUrl;
+        if ("student".equalsIgnoreCase(category)) {
+            imageUrl = (person.getImageUrl() != null && !person.getImageUrl().isBlank())
+                    ? person.getImageUrl()
+                    : studentService.getStudentBasicInfo(trimmedId)
+                        .map(s -> s.getImageUrl())
+                        .orElse("/images/user.png");
+        } else {
+            imageUrl = imageService.getProfileImageUrl(category, trimmedId);
+        }
+        response.put("imageUrl", imageUrl);
+        response.put("hasImage", imageUrl != null && !imageUrl.isBlank());
+
+        if (!"student".equalsIgnoreCase(category) && !"visitor".equalsIgnoreCase(category)) {
+            staffRepository.findLatestByEmpNo(trimmedId).ifPresent(staff -> {
+                response.put("salaryDate", staff.getSalaryDate());
+                response.put("staffNic", staff.getNic());
+                response.put("staffEmployeeType", staff.getEmployeeType());
+                if (staff.getDateOfBirth() != null && !staff.getDateOfBirth().isEmpty()) {
+                    try {
+                        LocalDate dob = LocalDate.parse(staff.getDateOfBirth(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        int retirementAge = staff.isAcademic() ? 65 : 60;
+                        LocalDate expiryDate = dob.plusYears(retirementAge);
+                        response.put("expiryDate", expiryDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                    } catch (DateTimeParseException ignored) {
+                        // Keep expiryDate absent when invalid DOB format
+                    }
+                }
+            });
+        }
+
+        try {
+            response.put("archivedImages", imageService.listArchivedImages(trimmedId));
+        } catch (Exception e) {
+            response.put("archivedImages", List.of());
+        }
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -191,5 +304,16 @@ public class ImageManagementController {
         } catch (Exception e) {
             log.debug("Could not compute expiry for {}: {}", empNo, e.getMessage());
         }
+    }
+
+    private String resolveUserType(Authentication authentication) {
+        if (authentication == null) {
+            return "";
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getUserType();
+        }
+        return "";
     }
 }

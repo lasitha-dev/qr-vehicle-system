@@ -11,8 +11,10 @@ import com.uop.qrvehicle.repository.VehicleRepository;
 import com.uop.qrvehicle.repository.VisitorRepository;
 import com.uop.qrvehicle.service.PersonService;
 import com.uop.qrvehicle.service.StudentService;
+import com.uop.qrvehicle.security.CustomUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -418,13 +420,19 @@ public class ApiController {
     // =========================================================================
     @GetMapping("/persons/list")
     public ResponseEntity<List<PersonDropdownItem>> listPersonsByCategory(
-            @RequestParam String category) {
+            @RequestParam String category,
+            Authentication authentication) {
 
         List<PersonDropdownItem> items;
+        String userType = resolveUserType(authentication);
+
+        if (!personService.isCategoryAllowedForUserType(category, userType)) {
+            return ResponseEntity.ok(List.of());
+        }
 
         switch (category.toLowerCase()) {
             case "permanent":
-                items = personService.listPermanentStaff();
+                items = personService.listPermanentStaffByUserType(userType);
                 break;
             case "temporary":
             case "casual":
@@ -441,6 +449,17 @@ public class ApiController {
         }
 
         return ResponseEntity.ok(items);
+    }
+
+    private String resolveUserType(Authentication authentication) {
+        if (authentication == null) {
+            return "";
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getUserType();
+        }
+        return "";
     }
 
     // =========================================================================

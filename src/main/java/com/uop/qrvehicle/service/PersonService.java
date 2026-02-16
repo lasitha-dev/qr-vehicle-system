@@ -2,7 +2,6 @@ package com.uop.qrvehicle.service;
 
 import com.uop.qrvehicle.dto.PersonDropdownItem;
 import com.uop.qrvehicle.dto.PersonSearchResult;
-import com.uop.qrvehicle.dto.StudentDetailDTO;
 import com.uop.qrvehicle.model.*;
 import com.uop.qrvehicle.repository.*;
 import org.slf4j.Logger;
@@ -54,6 +53,69 @@ public class PersonService {
             log.error("Error listing permanent staff: {}", e.getMessage(), e);
             return Collections.emptyList();
         }
+    }
+
+    public List<PersonDropdownItem> listPermanentStaffByUserType(String userType) {
+        try {
+            List<Staff> rows;
+            if (isNonAcademicUserType(userType)) {
+                rows = staffRepository.findAllLatestNonAcademicRecords();
+            } else if (isAcademicUserType(userType)) {
+                rows = staffRepository.findAllLatestAcademicRecords();
+            } else {
+                rows = staffRepository.findAllLatestRecords();
+            }
+            return rows.stream()
+                    .map(s -> new PersonDropdownItem(
+                            s.getEmpNo(),
+                            s.getEmpNo() + " - " + s.getEmpName() + " (Permanent)"))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Error listing permanent staff by user type {}: {}", userType, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    public boolean isCategoryAllowedForUserType(String category, String userType) {
+        if (category == null || category.isBlank()) {
+            return true;
+        }
+        if (isAcademicUserType(userType) || isNonAcademicUserType(userType)) {
+            return "permanent".equalsIgnoreCase(category);
+        }
+        return true;
+    }
+
+    public boolean canViewPermanentStaffForUserType(Staff staff, String userType) {
+        if (staff == null) {
+            return false;
+        }
+        if (isNonAcademicUserType(userType)) {
+            return "Non Academic".equalsIgnoreCase(staff.getEmployeeType());
+        }
+        if (isAcademicUserType(userType)) {
+            return staff.getEmployeeType() == null || !"Non Academic".equalsIgnoreCase(staff.getEmployeeType());
+        }
+        return true;
+    }
+
+    public boolean isAcademicUserType(String userType) {
+        return "ACADEMIC".equals(normalizeUserType(userType));
+    }
+
+    public boolean isNonAcademicUserType(String userType) {
+        return "NONACADEMIC".equals(normalizeUserType(userType));
+    }
+
+    private String normalizeUserType(String userType) {
+        if (userType == null) {
+            return "";
+        }
+        return userType.replace("_", "")
+                .replace("-", "")
+                .replace(" ", "")
+                .trim()
+                .toUpperCase();
     }
 
     /**

@@ -46,8 +46,32 @@ public interface StaffRepository extends JpaRepository<Staff, StaffId> {
             FROM slipspaymentsdetailall
             GROUP BY EmpNo
         ) latest ON s.EmpNo = latest.EmpNo AND s.SalDt = latest.LatestSalDt
-        WHERE s.EmpNm LIKE %:name%
+        WHERE s.EmpNm LIKE CONCAT('%', :name, '%')
         ORDER BY s.EmpNo ASC
         """, nativeQuery = true)
     List<Staff> searchByName(String name);
+
+    @Query(value = """
+        SELECT s.* FROM slipspaymentsdetailall s
+        INNER JOIN (
+            SELECT EmpNo, MAX(SalDt) AS LatestSalDt
+            FROM slipspaymentsdetailall
+            GROUP BY EmpNo
+        ) latest ON s.EmpNo = latest.EmpNo AND s.SalDt = latest.LatestSalDt
+        WHERE s.EmpTypCd = 'Non Academic'
+        ORDER BY s.EmpNo ASC
+        """, nativeQuery = true)
+    List<Staff> findAllLatestNonAcademicRecords();
+
+    @Query(value = """
+        SELECT s.* FROM slipspaymentsdetailall s
+        INNER JOIN (
+            SELECT EmpNo, MAX(SalDt) AS LatestSalDt
+            FROM slipspaymentsdetailall
+            GROUP BY EmpNo
+        ) latest ON s.EmpNo = latest.EmpNo AND s.SalDt = latest.LatestSalDt
+        WHERE s.EmpTypCd <> 'Non Academic'
+        ORDER BY s.EmpNo ASC
+        """, nativeQuery = true)
+    List<Staff> findAllLatestAcademicRecords();
 }

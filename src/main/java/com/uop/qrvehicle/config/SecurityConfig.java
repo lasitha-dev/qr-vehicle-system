@@ -57,6 +57,7 @@ public class SecurityConfig {
                 // Viewer image management only
                 .requestMatchers("/view/images/**").hasRole("VIEWER")
                 .requestMatchers("/uploads/images/**").hasRole("VIEWER")
+                .requestMatchers("/api/persons/list", "/api/students/**").hasRole("VIEWER")
 
                 // All other routes are disabled in this migration stage
                 .anyRequest().denyAll()

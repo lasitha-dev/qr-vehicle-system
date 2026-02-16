@@ -9,6 +9,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -114,7 +116,7 @@ public class StudentService {
                 // Fetch academic history
                 loadAcademicHistory(dto);
                 // Build image URL
-                dto.setImageUrl(buildStudentImageUrl(dto.getAppYear(), dto.getFaculty(), dto.getRegNo(), dto.getGender()));
+                dto.setImageUrl(buildStudentImageUrl(dto.getRegNo()));
             }
 
             return Optional.ofNullable(dto);
@@ -263,7 +265,7 @@ public class StudentService {
 
             if (dto != null) {
                 loadSemesterInfo(dto);
-                dto.setImageUrl(buildStudentImageUrl(dto.getAppYear(), dto.getFaculty(), dto.getRegNo(), dto.getGender()));
+                dto.setImageUrl(buildStudentImageUrl(dto.getRegNo()));
             }
             return Optional.ofNullable(dto);
         } catch (EmptyResultDataAccessException e) {
@@ -383,15 +385,11 @@ public class StudentService {
      * Build student image URL.
      * Mirrors PHP findimage() / findImagePath() / displayImage() in methodList.php.
      */
-    private String buildStudentImageUrl(String appYear, String faculty, String regNo, String gender) {
-        // Try local uploads first
-        String safeRegNo = regNo != null ? regNo.replace("/", "_") : "";
-        String localPath = "/uploads/images/Student/" + safeRegNo + ".jpg";
-        
-        // Fallback to gender-based default
-        if (gender != null && gender.equalsIgnoreCase("F")) {
-            return "/images/user.png"; // Female default — can be customized
+    private String buildStudentImageUrl(String regNo) {
+        if (regNo != null && !regNo.isBlank()) {
+            String encodedRegNo = URLEncoder.encode(regNo, StandardCharsets.UTF_8);
+            return "https://stud.pdn.ac.lk/student_image_view.php?regno=" + encodedRegNo;
         }
-        return "/images/user.png"; // Default user image
+        return "/images/user.png";
     }
 }

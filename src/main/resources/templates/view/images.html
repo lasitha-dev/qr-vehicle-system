@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8">
@@ -7,19 +7,20 @@
     <title>Image Management - QR Vehicle System</title>
     <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
     <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
         .selection-form {
-            max-width: 700px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 30px;
+            padding: 25px;
             background: white;
             border-radius: 12px;
             border: 1px solid #e0e0e0;
         }
 
-        .selection-form .form-row {
+        .selection-form .form-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin-bottom: 15px;
         }
@@ -37,7 +38,7 @@
             background: #f5f5f5;
             border: 2px dashed #ccc;
             border-radius: 12px;
-            min-width: 250px;
+            min-width: 260px;
         }
 
         .current-image-box img {
@@ -50,16 +51,11 @@
 
         .upload-box {
             flex: 1;
-            min-width: 280px;
+            min-width: 300px;
             padding: 20px;
             background: #e8f5e9;
             border: 2px dashed #4caf50;
             border-radius: 12px;
-        }
-
-        .id-card-preview {
-            margin: 25px 0;
-            padding: 0;
         }
 
         .id-card {
@@ -161,25 +157,22 @@
             cursor: pointer;
         }
 
-        @media print {
+        .hidden {
+            display: none;
+        }
 
-            .upload-box,
-            .btn-group,
-            .selection-form,
-            .site-header,
-            .site-footer,
-            .main-nav {
-                display: none;
-            }
-
-            .id-card {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            font-size: 0.9em;
         }
 
         @media (max-width: 768px) {
-            .selection-form .form-row {
+            .selection-form .form-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -195,116 +188,124 @@
     <div class="container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
-        <div style="margin-bottom: 15px;"></div>
+        <div class="selection-form">
+            <h2 style="text-align:center; margin-bottom:20px;">Image Management</h2>
 
-        <!-- =============== SELECTION FORM =============== -->
-        <div th:unless="${showDetail}" class="selection-form">
-            <h2 style="text-align:center; margin-bottom:20px;">🖼️ Image Management</h2>
+            <div th:if="${lockedPermanent}" class="warning-box">
+                Category is restricted to Permanent for your user type.
+            </div>
 
-            <form th:action="@{/view/images}" method="get">
+            <div class="form-grid">
                 <div class="form-group">
-                    <label>Category</label>
-                    <select name="category" id="categorySelect" class="form-control" required
-                        onchange="this.form.submit()">
+                    <label for="categorySelect">Category</label>
+                    <select id="categorySelect" class="form-control" required>
                         <option value="">-- Select Category --</option>
-                        <option value="Student" th:selected="${category == 'Student'}">🎓 Student</option>
-                        <option value="Permanent" th:selected="${category == 'Permanent'}">👔 Permanent Staff</option>
-                        <option value="Temporary" th:selected="${category == 'Temporary'}">👤 Temporary Staff</option>
-                        <option value="Casual" th:selected="${category == 'Casual'}">👤 Casual Staff</option>
-                        <option value="Contract" th:selected="${category == 'Contract'}">👤 Contract Staff</option>
-                        <option value="Institute" th:selected="${category == 'Institute'}">🏛️ Institute Staff</option>
-                        <option value="Visitor" th:selected="${category == 'Visitor'}">🚶 Visitor</option>
+                        <option value="student" th:selected="${category != null and #strings.equalsIgnoreCase(category, 'student')}"
+                            th:disabled="${lockedPermanent}">Student</option>
+                        <option value="permanent" th:selected="${category != null and #strings.equalsIgnoreCase(category, 'permanent')}">Permanent Staff</option>
+                        <option value="temporary" th:selected="${category != null and #strings.equalsIgnoreCase(category, 'temporary')}"
+                            th:disabled="${lockedPermanent}">Temporary Staff</option>
+                        <option value="casual" th:selected="${category != null and #strings.equalsIgnoreCase(category, 'casual')}"
+                            th:disabled="${lockedPermanent}">Casual Staff</option>
+                        <option value="contract" th:selected="${category != null and #strings.equalsIgnoreCase(category, 'contract')}"
+                            th:disabled="${lockedPermanent}">Contract Staff</option>
+                        <option value="institute" th:selected="${category != null and #strings.equalsIgnoreCase(category, 'institute')}"
+                            th:disabled="${lockedPermanent}">Institute Staff</option>
+                        <option value="visitor" th:selected="${category != null and #strings.equalsIgnoreCase(category, 'visitor')}"
+                            th:disabled="${lockedPermanent}">Visitor</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label>Person ID</label>
-                    <input type="text" name="id" class="form-control"
-                        placeholder="Enter Employee No / Registration No / Visitor ID" required>
+                <div class="form-group hidden" id="nonStudentGroup">
+                    <label id="personSelectLabel" for="personSelect">Select Person</label>
+                    <select id="personSelect" class="form-control">
+                        <option value="">-- Select --</option>
+                    </select>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width:100%;">
-                    🔍 View / Manage Image
-                </button>
-            </form>
+                <div class="form-group hidden" id="facultyGroup">
+                    <label for="facultySelect">Faculty</label>
+                    <select id="facultySelect" class="form-control">
+                        <option value="">-- Select Faculty --</option>
+                    </select>
+                </div>
+
+                <div class="form-group hidden" id="yearGroup">
+                    <label for="yearSelect">Academic Year</label>
+                    <select id="yearSelect" class="form-control">
+                        <option value="">-- Select Year --</option>
+                    </select>
+                </div>
+
+                <div class="form-group hidden" id="studentGroup">
+                    <label for="regNoSelect">Registration No</label>
+                    <select id="regNoSelect" class="form-control">
+                        <option value="">-- Select Registration No --</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <!-- =============== DETAIL VIEW =============== -->
-        <div th:if="${showDetail}">
-
-            <!-- Person Info Header -->
-            <div th:if="${person}" class="card" style="margin-bottom:20px;">
+        <div id="detailSection" class="hidden" style="margin-top:20px;">
+            <div class="card" style="margin-bottom:20px;">
                 <div style="display:flex; align-items:center; gap:15px; padding:15px;">
                     <div>
-                        <h3 th:text="${person.name}" style="margin:0;">Name</h3>
-                        <span style="color:#666;" th:text="${person.type + ' — ' + person.id}">Type - ID</span>
-                        <span th:if="${person.designation}" style="display:block; color:#888;"
-                            th:text="${person.designation}"></span>
-                        <span th:if="${person.department}" style="display:block; color:#888;"
-                            th:text="${person.department}"></span>
+                        <h3 id="personName" style="margin:0;">-</h3>
+                        <span id="personTypeAndId" style="color:#666; display:block;">-</span>
+                        <span id="personDesignation" style="display:block; color:#888;"></span>
+                        <span id="personDepartment" style="display:block; color:#888;"></span>
+                        <span id="personSalaryDate" style="display:block; color:#888;"></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Image + Upload Section -->
             <div class="image-container">
-                <!-- Current Image -->
                 <div class="current-image-box">
                     <h4>Current Photo</h4>
-                    <div th:if="${hasImage}">
-                        <img th:src="${currentImageUrl}" alt="Profile Photo">
-                    </div>
-                    <div th:unless="${hasImage}" style="padding:40px 0; color:#999;">
+                    <img id="currentImage" src="" alt="Profile" class="hidden">
+                    <div id="noImageBox" style="padding:40px 0; color:#999;">
                         <p style="font-size:3em;">📷</p>
                         <p>No photo uploaded</p>
                     </div>
 
-                    <!-- Delete button (admin only) -->
-                    <form th:if="${hasImage}" th:action="@{/view/images/delete}" method="post" style="margin-top:10px;"
+                    <form id="deleteForm" th:action="@{/view/images/delete}" method="post" style="margin-top:10px;"
                         sec:authorize="hasRole('ADMIN')"
                         onsubmit="return confirm('Delete this image? Old image will NOT be archived.')">
-                        <input type="hidden" name="category" th:value="${category}">
-                        <input type="hidden" name="id" th:value="${id}">
-                        <button type="submit" class="btn btn-danger" style="font-size:0.85em;">🗑️ Delete</button>
+                        <input type="hidden" name="category" id="deleteCategory">
+                        <input type="hidden" name="id" id="deleteId">
+                        <button type="submit" class="btn btn-danger" style="font-size:0.85em;">Delete</button>
                     </form>
                 </div>
 
-                <!-- Upload Form -->
                 <div class="upload-box" sec:authorize="hasRole('VIEWER')">
-                    <h4>📤 Upload New Photo</h4>
+                    <h4>Upload New Photo</h4>
                     <p style="font-size:0.85em; color:#666; margin-bottom:12px;">
                         Uploading a new photo will archive the current one automatically.
                     </p>
                     <form th:action="@{/view/images/upload}" method="post" enctype="multipart/form-data">
-                        <input type="hidden" name="category" th:value="${category}">
-                        <input type="hidden" name="id" th:value="${id}">
+                        <input type="hidden" name="category" id="uploadCategory">
+                        <input type="hidden" name="id" id="uploadId">
 
                         <div class="form-group">
-                            <label>Select Image</label>
-                            <input type="file" name="profile_image" class="form-control" accept="image/*" required>
+                            <label for="profileImageInput">Select Image</label>
+                            <input id="profileImageInput" type="file" name="profile_image" class="form-control" accept="image/*" required>
                         </div>
 
-                        <!-- Image preview -->
                         <div id="imagePreview" style="margin:10px 0; display:none; text-align:center;">
                             <img id="previewImg" src="" alt="Preview"
                                 style="max-width:200px; max-height:250px; border-radius:8px; border:2px solid #4caf50;">
                         </div>
 
-                        <button type="submit" class="btn btn-success" style="width:100%;">
-                            ⬆️ Upload Image
-                        </button>
+                        <button type="submit" class="btn btn-success" style="width:100%;">Upload Image</button>
                     </form>
                 </div>
             </div>
 
-            <!-- =============== ID CARD PREVIEW (Staff only) =============== -->
-            <div th:if="${showIdCard}" class="card" style="margin-top:20px;">
+            <div id="idCardSection" class="card hidden" style="margin-top:20px;">
                 <div class="card-header">
-                    <h3 class="card-title">🪪 ID Card Preview</h3>
+                    <h3 class="card-title">ID Card Preview</h3>
                 </div>
                 <div style="padding:20px; display:flex; gap:25px; flex-wrap:wrap; justify-content:center;">
-
-                    <!-- Front Card -->
                     <div>
                         <h4 style="text-align:center; margin-bottom:8px;">Front</h4>
                         <div class="id-card">
@@ -314,38 +315,27 @@
                             </div>
                             <div class="card-body">
                                 <div class="photo-frame">
-                                    <img th:if="${hasImage}" th:src="${currentImageUrl}" alt="Photo">
-                                    <div th:unless="${hasImage}"
+                                    <img id="idCardPhoto" src="" alt="Profile" class="hidden">
+                                    <div id="idCardNoPhoto"
                                         style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2em;">
-                                        👤</div>
+                                        👤
+                                    </div>
                                 </div>
                                 <div class="card-details">
-                                    <div class="name" th:text="${person != null} ? ${person.name} : 'Full Name'">Name
-                                    </div>
-                                    <div><span class="field-label">Designation: </span>
-                                        <span
-                                            th:text="${person != null and person.designation != null} ? ${person.designation} : '—'">Desg</span>
-                                    </div>
-                                    <div><span class="field-label">Department: </span>
-                                        <span
-                                            th:text="${person != null and person.department != null} ? ${person.department} : '—'">Dept</span>
-                                    </div>
-                                    <div><span class="field-label">Emp No: </span>
-                                        <span th:text="${id}">ID</span>
-                                    </div>
-                                    <div th:if="${staffNic}"><span class="field-label">NIC: </span>
-                                        <span th:text="${staffNic}">NIC</span>
-                                    </div>
+                                    <div class="name" id="idCardName">Full Name</div>
+                                    <div><span class="field-label">Designation: </span><span id="idCardDesignation">—</span></div>
+                                    <div><span class="field-label">Department: </span><span id="idCardDepartment">—</span></div>
+                                    <div><span class="field-label">Emp No: </span><span id="idCardEmpNo">—</span></div>
+                                    <div><span class="field-label">NIC: </span><span id="idCardNic">—</span></div>
                                 </div>
                             </div>
                             <div class="expiry-bar">
-                                <span th:text="'Type: ' + (${staffEmployeeType} ?: '—')">Type</span>
-                                <span th:text="'Expiry: ' + (${expiryDate} ?: '—')">Expiry</span>
+                                <span id="idCardType">Type: —</span>
+                                <span id="idCardExpiry">Expiry: —</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Back Card -->
                     <div>
                         <h4 style="text-align:center; margin-bottom:8px;">Back</h4>
                         <div class="id-card id-card-back">
@@ -371,40 +361,84 @@
                 </div>
 
                 <div style="text-align:center; padding:0 20px 20px;">
-                    <button onclick="window.print()" class="btn btn-primary">🖨️ Print ID Card</button>
+                    <button onclick="window.print()" class="btn btn-primary">Print ID Card</button>
                 </div>
             </div>
 
-            <!-- =============== ARCHIVED IMAGES =============== -->
-            <div th:if="${archivedImages != null and !archivedImages.isEmpty()}" class="card" style="margin-top:20px;">
+            <div id="archivedSection" class="card hidden" style="margin-top:20px;">
                 <div class="card-header">
-                    <h3 class="card-title">📂 Archived Images</h3>
+                    <h3 class="card-title">Archived Images</h3>
                 </div>
                 <div style="padding:15px;">
-                    <p style="color:#666; font-size:0.9em; margin-bottom:10px;">
-                        Previous photos that were replaced:
-                    </p>
-                    <div class="archived-grid">
-                        <div th:each="img : ${archivedImages}">
-                            <img th:src="@{'/uploads/images/Old/' + ${img}}" th:alt="${img}" th:title="${img}"
-                                onclick="window.open(this.src, '_blank')">
-                        </div>
-                    </div>
+                    <p style="color:#666; font-size:0.9em; margin-bottom:10px;">Previous photos that were replaced:</p>
+                    <div id="archivedGrid" class="archived-grid"></div>
                 </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="btn-group" style="margin-top:20px;">
-                <a th:href="@{/view/images}" class="btn btn-primary">🔄 Select Another</a>
             </div>
         </div>
     </div>
 
     <div th:replace="~{fragments/layout :: footer}"></div>
 
-    <script>
-        // Image upload preview
-        document.addEventListener('DOMContentLoaded', function () {
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script th:inline="javascript">
+        const initialCategory = /*[[${category != null ? #strings.toLowerCase(category) : ''}]]*/ '';
+        const initialId = /*[[${id != null ? id : ''}]]*/ '';
+        const lockedPermanent = /*[[${lockedPermanent != null ? lockedPermanent : false}]]*/ false;
+        const contextPath = '/';
+
+        const categoryLabels = {
+            student: 'Student',
+            permanent: 'Permanent Staff',
+            temporary: 'Temporary Staff',
+            casual: 'Casual Staff',
+            contract: 'Contract Staff',
+            institute: 'Institute Staff',
+            visitor: 'Visitor'
+        };
+
+        $(document).ready(function () {
+            initializeSelect2($('#categorySelect'));
+
+            $('#categorySelect').on('change', function () {
+                const category = ($(this).val() || '').toLowerCase();
+                onCategoryChange(category);
+            });
+
+            $('#personSelect').on('change', function () {
+                const selectedId = $(this).val();
+                const category = ($('#categorySelect').val() || '').toLowerCase();
+                if (selectedId && category) {
+                    loadDetails(category, selectedId);
+                }
+            });
+
+            $('#facultySelect').on('change', function () {
+                const faculty = $(this).val();
+                $('#yearGroup').addClass('hidden');
+                $('#studentGroup').addClass('hidden');
+                if (faculty) {
+                    loadYears(faculty);
+                }
+            });
+
+            $('#yearSelect').on('change', function () {
+                const faculty = $('#facultySelect').val();
+                const year = $(this).val();
+                $('#studentGroup').addClass('hidden');
+                if (faculty && year) {
+                    loadStudents(faculty, year);
+                }
+            });
+
+            $('#regNoSelect').on('change', function () {
+                const selectedId = $(this).val();
+                if (selectedId) {
+                    loadDetails('student', selectedId);
+                }
+            });
+
             const fileInput = document.querySelector('input[name="profile_image"]');
             if (fileInput) {
                 fileInput.addEventListener('change', function (e) {
@@ -422,7 +456,224 @@
                     }
                 });
             }
+
+            if (initialCategory) {
+                $('#categorySelect').val(initialCategory).trigger('change');
+            }
+            if (initialCategory && initialId) {
+                loadDetails(initialCategory, initialId, true);
+            }
         });
+
+        function initializeSelect2($element, placeholder = '-- Select --') {
+            if ($element.hasClass('select2-hidden-accessible')) {
+                $element.select2('destroy');
+            }
+            $element.select2({
+                placeholder: placeholder,
+                allowClear: true,
+                width: '100%'
+            });
+        }
+
+        function onCategoryChange(category) {
+            if (lockedPermanent && category && category !== 'permanent') {
+                $('#categorySelect').val('permanent').trigger('change.select2');
+                category = 'permanent';
+            }
+
+            resetSelectionViews();
+            clearDetail();
+
+            if (!category) {
+                return;
+            }
+
+            if (category === 'student') {
+                $('#facultyGroup').removeClass('hidden');
+                loadFaculties();
+                return;
+            }
+
+            $('#personSelectLabel').text('Select ' + (categoryLabels[category] || 'Person'));
+            $('#nonStudentGroup').removeClass('hidden');
+            loadPersons(category);
+        }
+
+        function resetSelectionViews() {
+            $('#nonStudentGroup, #facultyGroup, #yearGroup, #studentGroup').addClass('hidden');
+            $('#personSelect').empty().append('<option value="">-- Select --</option>');
+            $('#facultySelect').empty().append('<option value="">-- Select Faculty --</option>');
+            $('#yearSelect').empty().append('<option value="">-- Select Year --</option>');
+            $('#regNoSelect').empty().append('<option value="">-- Select Registration No --</option>');
+        }
+
+        function loadPersons(category) {
+            const $select = $('#personSelect');
+            $select.empty().append('<option value="">Loading...</option>');
+
+            $.getJSON(contextPath + 'api/persons/list', { category: category })
+                .done(function (data) {
+                    $select.empty().append('<option value="">-- Search and select --</option>');
+                    $.each(data, function (_, item) {
+                        $select.append($('<option>').val(item.id).text(item.label));
+                    });
+                    initializeSelect2($select, '-- Search and select --');
+                    if (initialCategory === category && initialId) {
+                        $select.val(initialId).trigger('change.select2');
+                    }
+                })
+                .fail(function () {
+                    $select.empty().append('<option value="">Error loading data</option>');
+                    initializeSelect2($select, '-- Search and select --');
+                });
+        }
+
+        function loadFaculties() {
+            const $select = $('#facultySelect');
+            $select.empty().append('<option value="">Loading...</option>');
+
+            $.getJSON(contextPath + 'api/students/faculties')
+                .done(function (data) {
+                    $select.empty().append('<option value="">-- Select Faculty --</option>');
+                    $.each(data, function (_, faculty) {
+                        $select.append($('<option>').val(faculty).text(faculty));
+                    });
+                    initializeSelect2($select, '-- Select Faculty --');
+                })
+                .fail(function () {
+                    $select.empty().append('<option value="">Error loading faculties</option>');
+                    initializeSelect2($select, '-- Select Faculty --');
+                });
+        }
+
+        function loadYears(faculty) {
+            const $select = $('#yearSelect');
+            $('#yearGroup').removeClass('hidden');
+            $select.empty().append('<option value="">Loading...</option>');
+
+            $.getJSON(contextPath + 'api/students/years', { faculty: faculty })
+                .done(function (data) {
+                    $select.empty().append('<option value="">-- Select Year --</option>');
+                    $.each(data, function (_, year) {
+                        $select.append($('<option>').val(year).text(year));
+                    });
+                    initializeSelect2($select, '-- Select Year --');
+                })
+                .fail(function () {
+                    $select.empty().append('<option value="">Error loading years</option>');
+                    initializeSelect2($select, '-- Select Year --');
+                });
+        }
+
+        function loadStudents(faculty, year) {
+            const $select = $('#regNoSelect');
+            $('#studentGroup').removeClass('hidden');
+            $select.empty().append('<option value="">Loading...</option>');
+
+            $.getJSON(contextPath + 'api/students/list', { faculty: faculty, year: year })
+                .done(function (data) {
+                    $select.empty().append('<option value="">-- Search and select --</option>');
+                    $.each(data, function (_, item) {
+                        $select.append($('<option>').val(item.id).text(item.label));
+                    });
+                    initializeSelect2($select, '-- Search and select --');
+                    if (initialCategory === 'student' && initialId) {
+                        $select.val(initialId).trigger('change.select2');
+                    }
+                })
+                .fail(function () {
+                    $select.empty().append('<option value="">Error loading students</option>');
+                    initializeSelect2($select, '-- Search and select --');
+                });
+        }
+
+        function loadDetails(category, id, skipSelectorUpdate = false) {
+            $.getJSON(contextPath + 'view/images/detail', { category: category, id: id })
+                .done(function (data) {
+                    renderDetails(category, id, data);
+                    if (!skipSelectorUpdate) {
+                        syncSelectedValue(category, id);
+                    }
+                })
+                .fail(function (xhr) {
+                    const message = xhr.responseJSON && xhr.responseJSON.error
+                        ? xhr.responseJSON.error
+                        : 'Failed to load person details';
+                    alert(message);
+                });
+        }
+
+        function renderDetails(category, id, data) {
+            $('#detailSection').removeClass('hidden');
+
+            $('#personName').text(data.name || '-');
+            $('#personTypeAndId').text((data.type || '-') + ' — ' + (data.id || id));
+            $('#personDesignation').text(data.designation || '');
+            $('#personDepartment').text(data.department || '');
+
+            if (data.salaryDate) {
+                $('#personSalaryDate').text('Last Salary Date: ' + data.salaryDate);
+            } else {
+                $('#personSalaryDate').text('');
+            }
+
+            $('#uploadCategory').val(category);
+            $('#uploadId').val(id);
+            $('#deleteCategory').val(category);
+            $('#deleteId').val(id);
+
+            if (data.imageUrl) {
+                $('#currentImage').attr('src', data.imageUrl).removeClass('hidden');
+                $('#noImageBox').addClass('hidden');
+                $('#idCardPhoto').attr('src', data.imageUrl).removeClass('hidden');
+                $('#idCardNoPhoto').addClass('hidden');
+            } else {
+                $('#currentImage').attr('src', '').addClass('hidden');
+                $('#noImageBox').removeClass('hidden');
+                $('#idCardPhoto').attr('src', '').addClass('hidden');
+                $('#idCardNoPhoto').removeClass('hidden');
+            }
+
+            const showStaffCard = category !== 'student' && category !== 'visitor';
+            if (showStaffCard) {
+                $('#idCardSection').removeClass('hidden');
+                $('#idCardName').text(data.name || '-');
+                $('#idCardDesignation').text(data.designation || '—');
+                $('#idCardDepartment').text(data.department || '—');
+                $('#idCardEmpNo').text(data.id || id);
+                $('#idCardNic').text(data.staffNic || data.nic || '—');
+                $('#idCardType').text('Type: ' + (data.staffEmployeeType || data.employeeType || '—'));
+                $('#idCardExpiry').text('Expiry: ' + (data.expiryDate || '—'));
+            } else {
+                $('#idCardSection').addClass('hidden');
+            }
+
+            const archived = Array.isArray(data.archivedImages) ? data.archivedImages : [];
+            if (archived.length > 0) {
+                $('#archivedSection').removeClass('hidden');
+                const html = archived.map(img =>
+                    `<img src="/uploads/images/Old/${encodeURIComponent(img)}" alt="${img}" title="${img}" onclick="window.open(this.src, '_blank')">`
+                ).join('');
+                $('#archivedGrid').html(html);
+            } else {
+                $('#archivedSection').addClass('hidden');
+                $('#archivedGrid').empty();
+            }
+        }
+
+        function syncSelectedValue(category, id) {
+            if (category === 'student') {
+                $('#regNoSelect').val(id).trigger('change.select2');
+            } else {
+                $('#personSelect').val(id).trigger('change.select2');
+            }
+        }
+
+        function clearDetail() {
+            $('#detailSection').addClass('hidden');
+            $('#archivedGrid').empty();
+        }
     </script>
 </body>
 
