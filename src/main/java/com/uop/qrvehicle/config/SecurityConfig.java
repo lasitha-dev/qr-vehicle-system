@@ -53,49 +53,13 @@ public class SecurityConfig {
                 // Public resources
                 .requestMatchers("/", "/login", "/error").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                .requestMatchers("/api/keepalive/**").authenticated()
-                
-                // Admin only
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/vehicle/delete/**").hasRole("ADMIN")
-                .requestMatchers("/vehicle/certificate/**").hasRole("ADMIN")
-                .requestMatchers("/qr/generate/**").hasRole("ADMIN")
-                
-                // Admin and Entry - vehicle insert/add
-                .requestMatchers("/vehicle/insert/**", "/vehicle/add").hasAnyRole("ADMIN", "ENTRY")
-                
-                // Searcher access to vehicle search
-                .requestMatchers("/vehicle/search/**").hasAnyRole("ADMIN", "ENTRY", "SEARCHER")
-                
-                // Admin and Entry - other vehicle operations
-                .requestMatchers("/vehicle/**").hasAnyRole("ADMIN", "ENTRY")
-                .requestMatchers("/certificate/**").hasAnyRole("ADMIN", "ENTRY")
-                
-                // Self-service vehicle registration for all authenticated users
-                .requestMatchers("/my/vehicle/**").authenticated()
-                
-                // Viewer access
-                .requestMatchers("/view/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
-                
-                // Searcher access
-                .requestMatchers("/search/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER")
-                
-                // Student and staff details for admin/entry/viewer
-                .requestMatchers("/student/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
-                .requestMatchers("/staff/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
-                
-                // ID Card preview for admin/entry/viewer
-                .requestMatchers("/idcard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
-                
-                // REST API endpoints (authenticated)
-                .requestMatchers("/api/vehicle/**", "/api/user/**", "/api/person/**", "/api/persons/**").authenticated()
-                .requestMatchers("/api/students/**").authenticated()
-                
-                // Dashboard for all authenticated users
-                .requestMatchers("/dashboard/**").authenticated()
-                
-                // All other requests require authentication
-                .anyRequest().authenticated()
+                .requestMatchers("/dashboard/**").hasRole("VIEWER")
+                // Viewer image management only
+                .requestMatchers("/view/images/**").hasRole("VIEWER")
+                .requestMatchers("/uploads/images/**").hasRole("VIEWER")
+
+                // All other routes are disabled in this migration stage
+                .anyRequest().denyAll()
             )
             .formLogin(form -> form
                 .loginPage("/login")
@@ -122,7 +86,7 @@ public class SecurityConfig {
             )
             // Disable CSRF for API endpoints (REST)
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**")
+                .ignoringRequestMatchers("/api/**", "/view/images/**")
             )
             .exceptionHandling(ex -> ex
                 .accessDeniedPage("/error/403")

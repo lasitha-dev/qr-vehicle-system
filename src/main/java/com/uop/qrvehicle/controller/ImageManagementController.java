@@ -53,7 +53,7 @@ public class ImageManagementController {
      * GET /view/images?category=Student&id=AG/23/218
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'VIEWER')")
+    @PreAuthorize("hasRole('VIEWER')")
     public String imageManagement(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String id,
@@ -118,7 +118,7 @@ public class ImageManagementController {
      * Upload a profile image
      */
     @PostMapping("/upload")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY')")
+    @PreAuthorize("hasRole('VIEWER')")
     public String uploadImage(@RequestParam String category,
                               @RequestParam String id,
                               @RequestParam("profile_image") MultipartFile file,

@@ -195,11 +195,7 @@
     <div class="container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
-        <div style="margin-bottom: 15px;">
-            <a th:href="@{/dashboard}" class="btn"
-                style="background: #800000; color: white; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-size: 14px;">←
-                Back to Dashboard</a>
-        </div>
+        <div style="margin-bottom: 15px;"></div>
 
         <!-- =============== SELECTION FORM =============== -->
         <div th:unless="${showDetail}" class="selection-form">
@@ -274,7 +270,7 @@
                 </div>
 
                 <!-- Upload Form -->
-                <div class="upload-box" sec:authorize="hasAnyRole('ADMIN','ENTRY')">
+                <div class="upload-box" sec:authorize="hasRole('VIEWER')">
                     <h4>📤 Upload New Photo</h4>
                     <p style="font-size:0.85em; color:#666; margin-bottom:12px;">
                         Uploading a new photo will archive the current one automatically.
@@ -400,9 +396,6 @@
             <!-- Action Buttons -->
             <div class="btn-group" style="margin-top:20px;">
                 <a th:href="@{/view/images}" class="btn btn-primary">🔄 Select Another</a>
-                <a th:if="${person}" th:href="@{/view/detail(id=${id}, category=${category})}"
-                    class="btn btn-primary">📋 Full Detail View</a>
-                <a th:href="@{/dashboard}" class="btn btn-secondary">🏠 Dashboard</a>
             </div>
         </div>
     </div>
