@@ -6,6 +6,7 @@ import com.uop.qrvehicle.security.KeycloakOidcSuccessHandler;
 import com.uop.qrvehicle.security.OAuth2LoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import jakarta.servlet.DispatcherType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -50,17 +51,41 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
+                .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                 // Public resources
-                .requestMatchers("/", "/login", "/error").permitAll()
+                .requestMatchers("/", "/login", "/error", "/error/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                .requestMatchers("/dashboard/**").hasRole("VIEWER")
-                // Viewer image management only
-                .requestMatchers("/view/images/**").hasRole("VIEWER")
-                .requestMatchers("/uploads/images/**").hasRole("VIEWER")
-                .requestMatchers("/api/persons/list", "/api/students/**").hasRole("VIEWER")
+                .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER")
 
-                // All other routes are disabled in this migration stage
-                .anyRequest().denyAll()
+                // Admin-only routes
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/qr/**").hasRole("ADMIN")
+                .requestMatchers("/vehicle/pending", "/vehicle/approve", "/vehicle/reject").hasRole("ADMIN")
+                .requestMatchers("/vehicle/update", "/vehicle/delete", "/vehicle/certificate/delete").hasRole("ADMIN")
+
+                // Admin + Entry: vehicle insert/add
+                .requestMatchers("/vehicle/insert", "/vehicle/add").hasAnyRole("ADMIN", "ENTRY")
+
+                // Admin + Entry + Viewer: person/staff/student views
+                .requestMatchers("/staff/**", "/student/**", "/view/detail").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
+                .requestMatchers("/idcard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
+
+                // Viewer: image management
+                .requestMatchers("/view/images/**").hasAnyRole("ADMIN", "VIEWER")
+                .requestMatchers("/uploads/images/**").hasAnyRole("ADMIN", "VIEWER")
+                .requestMatchers("/api/persons/list", "/api/students/**").hasAnyRole("ADMIN", "VIEWER")
+
+                // Searcher + Admin: vehicle search
+                .requestMatchers("/vehicle/search", "/vehicle/scanner").hasAnyRole("ADMIN", "SEARCHER")
+
+                // Person search (public QR scan landing + admin/searcher)
+                .requestMatchers("/search/**").hasAnyRole("ADMIN", "SEARCHER")
+
+                // API endpoints used by views
+                .requestMatchers("/api/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER")
+
+                // All other routes require authentication
+                .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")

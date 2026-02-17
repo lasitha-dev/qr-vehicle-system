@@ -67,7 +67,34 @@ public class DashboardController {
     private List<TaskDTO> getTasksForRole(String userType) {
         List<TaskDTO> tasks = new ArrayList<>();
 
-        tasks.add(new TaskDTO("View / Update Images", "/view/images", "🖼️", "#0275d8"));
+        if (userType == null) return tasks;
+
+        switch (userType.toLowerCase().trim()) {
+            case "admin":
+                tasks.add(new TaskDTO("Admin / Insert New Vehicle", "/vehicle/insert", "🚗", "#f0ad4e"));
+                tasks.add(new TaskDTO("Admin / QR Generator", "/qr/generate", "📝", "#5cb85c"));
+                tasks.add(new TaskDTO("Admin / Image Task", "/view/images", "👁️", "#0275d8"));
+                tasks.add(new TaskDTO("Admin / Search Vehicle", "/vehicle/search", "🚗🔍", "#6f42c1"));
+                tasks.add(new TaskDTO("Admin / Person Search", "/search/person", "🧑‍💼", "#ff851b"));
+                tasks.add(new TaskDTO("Admin / Backup", "/admin/backup", "👤", "#5bc0de"));
+                break;
+
+            case "entry":
+                tasks.add(new TaskDTO("Entry / Insert New Vehicle", "/vehicle/insert", "🚗", "#f0ad4e"));
+                break;
+
+            case "viewer":
+                tasks.add(new TaskDTO("Viewer / View Update Image", "/view/images", "👁️", "#0275d8"));
+                break;
+
+            case "searcher":
+                tasks.add(new TaskDTO("Searcher / Search Vehicle", "/vehicle/search", "🚗🔍", "#6f42c1"));
+                break;
+
+            default:
+                // Unknown role — no tasks
+                break;
+        }
 
         return tasks;
     }

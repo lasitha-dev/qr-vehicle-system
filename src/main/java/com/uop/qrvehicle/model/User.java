@@ -40,8 +40,20 @@ public class User {
 
     // Helper method to get role with ROLE_ prefix for Spring Security
     public String getRole() {
-        if (userType == null) return "ROLE_USER";
-        return "ROLE_" + userType.toUpperCase().replace(" ", "_");
+        if (userType == null) {
+            return "ROLE_USER";
+        }
+
+        String normalized = userType.trim();
+        if (normalized.isEmpty()) {
+            return "ROLE_USER";
+        }
+
+        if (normalized.regionMatches(true, 0, "ROLE_", 0, 5)) {
+            normalized = normalized.substring(5);
+        }
+
+        return "ROLE_" + normalized.toUpperCase().replace(' ', '_');
     }
 
     // Check if user is admin
