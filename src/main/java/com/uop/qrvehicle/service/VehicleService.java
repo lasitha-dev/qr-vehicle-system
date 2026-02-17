@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Vehicle Service - Business logic for vehicle management
@@ -194,5 +196,20 @@ public class VehicleService {
      */
     public List<Vehicle> getPendingVehicles() {
         return vehicleRepository.findByApprovalStatus("Pending");
+    }
+
+    /**
+     * Get vehicles for a specific employee filtered by approval status
+     */
+    public List<Vehicle> getVehiclesByEmpIdAndStatus(String empId, String status) {
+        return vehicleRepository.findByEmpIdAndApprovalStatusOrderByCreateDateDesc(empId, status);
+    }
+
+    /**
+     * Get the set of employee IDs that have vehicles matching a given type and approval status.
+     * Used for filtering person dropdowns.
+     */
+    public Set<String> getEmpIdsByTypeAndStatus(String type, String status) {
+        return new HashSet<>(vehicleRepository.findDistinctEmpIdsByTypeAndApprovalStatus(type, status));
     }
 }

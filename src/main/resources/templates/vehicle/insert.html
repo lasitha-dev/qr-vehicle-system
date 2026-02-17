@@ -68,6 +68,17 @@
                     <option value="visitor" th:selected="${category == 'visitor'}">Visitor</option>
                 </select>
             </div>
+
+            <!-- Approval Status Filter (appears after category is selected) -->
+            <div class="form-group" id="approvalMenuGroup" style="display: none;">
+                <label>Approval Menu:</label>
+                <select id="approvalStatusSelect" class="form-control">
+                    <option value="">-- All --</option>
+                    <option value="Pending" th:selected="${selectedStatus == 'Pending'}">Pending</option>
+                    <option value="Approved" th:selected="${selectedStatus == 'Approved'}">Approved</option>
+                    <option value="Rejected" th:selected="${selectedStatus == 'Rejected'}">Rejected</option>
+                </select>
+            </div>
         </div>
 
         <!-- Person Selection (dynamic dropdowns) -->
@@ -150,6 +161,7 @@
                                 <input type="hidden" name="category" th:value="${category}">
                                 <input type="hidden" name="id" th:value="${selectedId}">
                                 <input type="hidden" name="vehicleNo" th:value="${v.vehicleNo}">
+                                <input type="hidden" name="status" th:value="${selectedStatus}">
                                 <button type="submit" class="btn btn-danger btn-sm" title="Delete"
                                         style="padding: 4px 10px; font-size: 13px;">🗑️ Delete</button>
                             </form>
@@ -175,6 +187,7 @@
                     <input type="hidden" name="category" th:value="${category}">
                     <input type="hidden" name="id" th:value="${selectedId}">
                     <input type="hidden" name="oldVehicleNo" id="editOldVehicleNo">
+                    <input type="hidden" name="status" th:value="${selectedStatus}">
 
                     <div class="form-group">
                         <label>Vehicle No: <span style="color:red;">*</span></label>
@@ -237,6 +250,7 @@
             <form th:action="@{/vehicle/add}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="category" th:value="${category}">
                 <input type="hidden" name="id" th:value="${selectedId}">
+                <input type="hidden" name="status" th:value="${selectedStatus}">
 
                 <div class="form-group">
                     <label>Vehicle No: <span style="color: red;">*</span></label>
@@ -291,6 +305,7 @@
         const contextPath = '/';
         const currentCategory = /*[[${category != null ? category : ''}]]*/ '';
         const currentId = /*[[${selectedId != null ? selectedId : ''}]]*/ '';
+        const currentStatus = /*[[${selectedStatus != null ? selectedStatus : ''}]]*/ '';
 
         $(document).ready(function () {
 
@@ -305,7 +320,13 @@
                 $('#yearGroup').hide();
                 $('#regNoGroup').hide();
 
-                if (!category) return;
+                if (!category) {
+                    $('#approvalMenuGroup').hide();
+                    return;
+                }
+
+                // Show approval menu dropdown
+                $('#approvalMenuGroup').show();
 
                 // Update label
                 const labels = {
@@ -317,17 +338,36 @@
                 $('#categoryLabel').text(labels[category] || 'Person');
                 $('#personSelectionArea').show();
 
+                const status = $('#approvalStatusSelect').val();
                 if (category === 'student') {
                     $('#studentSection').show();
                     loadFaculties();
                 } else {
                     $('#nonStudentSection').show();
-                    loadPersons(category);
+                    loadPersons(category, status);
+                }
+            });
+
+            // ========== Approval Status change handler ==========
+            $('#approvalStatusSelect').on('change', function () {
+                const category = $('#categorySelect').val();
+                const status = $(this).val();
+                if (!category) return;
+
+                // Reset person selection areas
+                $('#yearGroup').hide();
+                $('#regNoGroup').hide();
+
+                if (category === 'student') {
+                    // Reset cascading dropdowns - only reload faculties, year/regNo will cascade
+                    loadFaculties();
+                } else {
+                    loadPersons(category, status);
                 }
             });
 
             // ========== Non-student: load person list ==========
-            function loadPersons(category) {
+            function loadPersons(category, status) {
                 const $select = $('#personSelect');
                 $select.empty().append('<option value="">Loading...</option>');
 
@@ -336,7 +376,12 @@
                     $select.select2('destroy');
                 }
 
-                $.getJSON(contextPath + 'api/persons/list', { category: category })
+                var params = { category: category };
+                if (status) {
+                    params.status = status;
+                }
+
+                $.getJSON(contextPath + 'api/persons/list', params)
                     .done(function (data) {
                         $select.empty().append('<option value="">-- Select --</option>');
                         $.each(data, function (i, item) {
@@ -357,8 +402,13 @@
             $('#personSelect').on('change', function () {
                 const id = $(this).val();
                 const category = $('#categorySelect').val();
+                const status = $('#approvalStatusSelect').val();
                 if (id && category) {
-                    window.location.href = contextPath + 'vehicle/insert?category=' + encodeURIComponent(category) + '&id=' + encodeURIComponent(id);
+                    var url = contextPath + 'vehicle/insert?category=' + encodeURIComponent(category) + '&id=' + encodeURIComponent(id);
+                    if (status) {
+                        url += '&status=' + encodeURIComponent(status);
+                    }
+                    window.location.href = url;
                 }
             });
 
@@ -437,7 +487,7 @@
                     $regNoSelect.select2('destroy');
                 }
 
-                $.getJSON(contextPath + 'api/students/list', { faculty: faculty, year: year })
+                $.getJSON(contextPath + 'api/students/list', { faculty: faculty, year: year, status: $('#approvalStatusSelect').val() || '' })
                     .done(function (data) {
                         $regNoSelect.empty().append('<option value="">-- Select Registration No --</option>');
                         $.each(data, function (i, item) {
@@ -457,13 +507,22 @@
             // Student selected → navigate
             $('#regNoSelect').on('change', function () {
                 const id = $(this).val();
+                const status = $('#approvalStatusSelect').val();
                 if (id) {
-                    window.location.href = contextPath + 'vehicle/insert?category=student&id=' + encodeURIComponent(id);
+                    var url = contextPath + 'vehicle/insert?category=student&id=' + encodeURIComponent(id);
+                    if (status) {
+                        url += '&status=' + encodeURIComponent(status);
+                    }
+                    window.location.href = url;
                 }
             });
 
             // ========== Restore state on page reload ==========
             if (currentCategory) {
+                // Restore approval status first, then trigger category change
+                if (currentStatus) {
+                    $('#approvalStatusSelect').val(currentStatus);
+                }
                 $('#categorySelect').val(currentCategory).trigger('change');
             }
         });

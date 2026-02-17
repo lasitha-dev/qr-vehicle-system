@@ -359,6 +359,21 @@ public class StudentService {
     }
 
     /**
+     * Get students for a given faculty and year, restricted to a set of allowed registration numbers.
+     * Used when filtering by approval status.
+     */
+    public List<PersonDropdownItem> getStudentsByFacultyYearAndIds(String faculty, String year, Set<String> allowedIds) {
+        try {
+            return getStudentsByFacultyAndYear(faculty, year).stream()
+                    .filter(item -> allowedIds.contains(item.getId()))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Error fetching students for faculty={}, year={} with ID filter: {}", faculty, year, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
      * Convert semester number to name.
      * Mirrors PHP getSemName() in methodList.php.
      */

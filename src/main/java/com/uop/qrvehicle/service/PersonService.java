@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Person Service - Handles searching for students, staff, and visitors
@@ -132,6 +133,51 @@ public class PersonService {
                     .toList();
         } catch (Exception e) {
             log.error("Error listing staff by category {}: {}", category, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * List permanent staff filtered by user type AND restricted to a set of allowed IDs.
+     * Used when filtering by approval status.
+     */
+    public List<PersonDropdownItem> listPermanentStaffByUserTypeAndIds(String userType, Set<String> allowedIds) {
+        try {
+            return listPermanentStaffByUserType(userType).stream()
+                    .filter(item -> allowedIds.contains(item.getId()))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Error listing permanent staff by user type {} with ID filter: {}", userType, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * List temporary/casual/contract/institute staff filtered by category AND restricted to a set of allowed IDs.
+     * Used when filtering by approval status.
+     */
+    public List<PersonDropdownItem> listStaffByCategoryAndIds(String category, Set<String> allowedIds) {
+        try {
+            return listStaffByCategory(category).stream()
+                    .filter(item -> allowedIds.contains(item.getId()))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Error listing staff by category {} with ID filter: {}", category, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * List visitors restricted to a set of allowed IDs.
+     * Used when filtering by approval status.
+     */
+    public List<PersonDropdownItem> listVisitorsByIds(Set<String> allowedIds) {
+        try {
+            return listVisitors().stream()
+                    .filter(item -> allowedIds.contains(item.getId()))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Error listing visitors with ID filter: {}", e.getMessage(), e);
             return Collections.emptyList();
         }
     }

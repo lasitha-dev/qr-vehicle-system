@@ -30,4 +30,16 @@ public interface VehicleRepository extends JpaRepository<Vehicle, VehicleId> {
     long countPendingVehicles();
 
     boolean existsByEmpIdAndVehicleNo(String empId, String vehicleNo);
+
+    /**
+     * Get distinct employee IDs that have vehicles matching a given type and approval status.
+     * Used for filtering person dropdowns by approval status on the insert page.
+     */
+    @Query("SELECT DISTINCT v.empId FROM Vehicle v WHERE v.type = :type AND v.approvalStatus = :status")
+    List<String> findDistinctEmpIdsByTypeAndApprovalStatus(String type, String status);
+
+    /**
+     * Get vehicles for a specific employee filtered by approval status.
+     */
+    List<Vehicle> findByEmpIdAndApprovalStatusOrderByCreateDateDesc(String empId, String approvalStatus);
 }

@@ -11,6 +11,7 @@ import com.uop.qrvehicle.repository.VehicleRepository;
 import com.uop.qrvehicle.repository.VisitorRepository;
 import com.uop.qrvehicle.service.PersonService;
 import com.uop.qrvehicle.service.StudentService;
+import com.uop.qrvehicle.service.VehicleService;
 import com.uop.qrvehicle.security.CustomUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,19 +38,22 @@ public class ApiController {
     private final VisitorRepository visitorRepository;
     private final PersonService personService;
     private final StudentService studentService;
+    private final VehicleService vehicleService;
 
     public ApiController(VehicleRepository vehicleRepository,
                         StaffRepository staffRepository,
                         TemporaryStaffRepository temporaryStaffRepository,
                         VisitorRepository visitorRepository,
                         PersonService personService,
-                        StudentService studentService) {
+                        StudentService studentService,
+                        VehicleService vehicleService) {
         this.vehicleRepository = vehicleRepository;
         this.staffRepository = staffRepository;
         this.temporaryStaffRepository = temporaryStaffRepository;
         this.visitorRepository = visitorRepository;
         this.personService = personService;
         this.studentService = studentService;
+        this.vehicleService = vehicleService;
     }
 
     // =========================================================================
@@ -417,10 +421,12 @@ public class ApiController {
     // =========================================================================
     // 6. LIST PERSONS BY CATEGORY  (for vehicle insert dropdown)
     //    GET /api/persons/list?category=permanent|temporary|casual|contract|institute|visitor
+    //    Optional: &status=Pending|Approved|Rejected (filter by approval status)
     // =========================================================================
     @GetMapping("/persons/list")
     public ResponseEntity<List<PersonDropdownItem>> listPersonsByCategory(
             @RequestParam String category,
+            @RequestParam(required = false) String status,
             Authentication authentication) {
 
         List<PersonDropdownItem> items;
@@ -430,18 +436,35 @@ public class ApiController {
             return ResponseEntity.ok(List.of());
         }
 
+        // If status filter is provided, get the set of allowed person IDs first
+        boolean hasStatusFilter = status != null && !status.isBlank();
+        Set<String> allowedIds = null;
+        if (hasStatusFilter) {
+            String mappedType = mapCategoryToType(category);
+            allowedIds = vehicleService.getEmpIdsByTypeAndStatus(mappedType, status);
+            if (allowedIds.isEmpty()) {
+                return ResponseEntity.ok(List.of());
+            }
+        }
+
         switch (category.toLowerCase()) {
             case "permanent":
-                items = personService.listPermanentStaffByUserType(userType);
+                items = hasStatusFilter
+                        ? personService.listPermanentStaffByUserTypeAndIds(userType, allowedIds)
+                        : personService.listPermanentStaffByUserType(userType);
                 break;
             case "temporary":
             case "casual":
             case "contract":
             case "institute":
-                items = personService.listStaffByCategory(category);
+                items = hasStatusFilter
+                        ? personService.listStaffByCategoryAndIds(category, allowedIds)
+                        : personService.listStaffByCategory(category);
                 break;
             case "visitor":
-                items = personService.listVisitors();
+                items = hasStatusFilter
+                        ? personService.listVisitorsByIds(allowedIds)
+                        : personService.listVisitors();
                 break;
             default:
                 items = List.of();
@@ -481,7 +504,32 @@ public class ApiController {
     @GetMapping("/students/list")
     public ResponseEntity<List<PersonDropdownItem>> getStudentsList(
             @RequestParam String faculty,
-            @RequestParam String year) {
+            @RequestParam String year,
+            @RequestParam(required = false) String status) {
+        if (status != null && !status.isBlank()) {
+            Set<String> allowedIds = vehicleService.getEmpIdsByTypeAndStatus("Student", status);
+            if (allowedIds.isEmpty()) {
+                return ResponseEntity.ok(List.of());
+            }
+            return ResponseEntity.ok(studentService.getStudentsByFacultyYearAndIds(faculty, year, allowedIds));
+        }
         return ResponseEntity.ok(studentService.getStudentsByFacultyAndYear(faculty, year));
+    }
+
+    /**
+     * Map category string to vehicle type value stored in DB.
+     */
+    private String mapCategoryToType(String category) {
+        if (category == null) return "Unknown";
+        switch (category.toLowerCase()) {
+            case "student": return "Student";
+            case "permanent": return "Permanent";
+            case "temporary": return "Temporary";
+            case "casual": return "Casual";
+            case "contract": return "Contract";
+            case "institute": return "Institute";
+            case "visitor": return "Visitor";
+            default: return category;
+        }
     }
 }

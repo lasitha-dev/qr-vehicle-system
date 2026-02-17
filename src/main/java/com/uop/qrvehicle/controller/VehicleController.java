@@ -42,25 +42,32 @@ public class VehicleController {
     @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY')")
     public String insertForm(@RequestParam(required = false) String category,
                             @RequestParam(required = false) String id,
+                            @RequestParam(required = false) String status,
                             Model model) {
         try {
-            log.debug("insertForm called: category={}, id={}", category, id);
+            log.debug("insertForm called: category={}, id={}, status={}", category, id, status);
             
             model.addAttribute("category", category);
             model.addAttribute("selectedId", id);
+            model.addAttribute("selectedStatus", status);
             
             // Add vehicle types for dropdown
             model.addAttribute("vehicleTypes", vehicleService.getActiveVehicleTypes());
             
             if (id != null && !id.isEmpty()) {
-                List<Vehicle> vehicles = vehicleService.getVehiclesByEmpId(id);
+                List<Vehicle> vehicles;
+                if (status != null && !status.isBlank()) {
+                    vehicles = vehicleService.getVehiclesByEmpIdAndStatus(id, status);
+                } else {
+                    vehicles = vehicleService.getVehiclesByEmpId(id);
+                }
                 model.addAttribute("vehicles", vehicles);
-                log.debug("Found {} vehicles for id={}", vehicles.size(), id);
+                log.debug("Found {} vehicles for id={}, status={}", vehicles.size(), id, status);
             }
             
             return "vehicle/insert";
         } catch (Exception e) {
-            log.error("Error in insertForm: category={}, id={}", category, id, e);
+            log.error("Error in insertForm: category={}, id={}, status={}", category, id, status, e);
             throw e;
         }
     }
@@ -77,6 +84,7 @@ public class VehicleController {
                             @RequestParam(required = false) Integer vehicleTypeId,
                             @RequestParam(required = false) String mobile,
                             @RequestParam(required = false) String email,
+                            @RequestParam(required = false) String status,
                             @RequestParam("certificate") MultipartFile certificate,
                             Authentication authentication,
                             RedirectAttributes redirectAttributes) {
@@ -97,7 +105,11 @@ public class VehicleController {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
         
-        return "redirect:/vehicle/insert?category=" + category + "&id=" + id;
+        String redirectUrl = "redirect:/vehicle/insert?category=" + category + "&id=" + id;
+        if (status != null && !status.isBlank()) {
+            redirectUrl += "&status=" + status;
+        }
+        return redirectUrl;
     }
 
     /**
@@ -114,6 +126,7 @@ public class VehicleController {
                                @RequestParam(required = false) Integer vehicleTypeId,
                                @RequestParam(required = false) String mobile,
                                @RequestParam(required = false) String email,
+                               @RequestParam(required = false) String status,
                                @RequestParam(value = "certificate", required = false) MultipartFile certificate,
                                Authentication authentication,
                                RedirectAttributes redirectAttributes) {
@@ -134,7 +147,11 @@ public class VehicleController {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
         
-        return "redirect:/vehicle/insert?category=" + category + "&id=" + id;
+        String redirectUrl = "redirect:/vehicle/insert?category=" + category + "&id=" + id;
+        if (status != null && !status.isBlank()) {
+            redirectUrl += "&status=" + status;
+        }
+        return redirectUrl;
     }
 
     /**
@@ -145,6 +162,7 @@ public class VehicleController {
     public String deleteVehicle(@RequestParam String category,
                                @RequestParam String id,
                                @RequestParam String vehicleNo,
+                               @RequestParam(required = false) String status,
                                RedirectAttributes redirectAttributes) {
         try {
             vehicleService.deleteVehicle(id, vehicleNo);
@@ -152,7 +170,11 @@ public class VehicleController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
-        return "redirect:/vehicle/insert?category=" + category + "&id=" + id;
+        String redirectUrl = "redirect:/vehicle/insert?category=" + category + "&id=" + id;
+        if (status != null && !status.isBlank()) {
+            redirectUrl += "&status=" + status;
+        }
+        return redirectUrl;
     }
 
     /**
@@ -240,6 +262,7 @@ public class VehicleController {
                                      @RequestParam String id,
                                      @RequestParam String filename,
                                      @RequestParam(required = false) String returnUrl,
+                                     @RequestParam(required = false) String status,
                                      RedirectAttributes redirectAttributes) {
         try {
             boolean deleted = certificateService.deleteCertificate(category, id, filename);
@@ -255,7 +278,11 @@ public class VehicleController {
         if (returnUrl != null && !returnUrl.isEmpty()) {
             return "redirect:" + returnUrl;
         }
-        return "redirect:/vehicle/insert?category=" + category + "&id=" + id;
+        String redirectUrl = "redirect:/vehicle/insert?category=" + category + "&id=" + id;
+        if (status != null && !status.isBlank()) {
+            redirectUrl += "&status=" + status;
+        }
+        return redirectUrl;
     }
 
     private String mapCategoryToType(String category) {
