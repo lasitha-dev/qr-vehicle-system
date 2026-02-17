@@ -480,6 +480,15 @@ public class ApiController {
         }
         Object principal = authentication.getPrincipal();
         if (principal instanceof CustomUserDetails customUserDetails) {
+            // Check username first: users with username 'Academic' or 'NonAcademic'
+            // have utype='viewer', but filtering should be based on their username
+            String username = customUserDetails.getUsername();
+            if (username != null) {
+                String normalized = username.replace("_", "").replace("-", "").replace(" ", "").trim().toUpperCase();
+                if ("ACADEMIC".equals(normalized) || "NONACADEMIC".equals(normalized)) {
+                    return username;
+                }
+            }
             return customUserDetails.getUserType();
         }
         return "";
