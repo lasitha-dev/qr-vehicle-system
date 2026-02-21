@@ -166,4 +166,39 @@ public class CertificateService {
         }
         return map;
     }
+    /**
+     * Rename certificate files when a vehicle number is updated.
+     * Finds certificate files containing the old vehicle number and renames them
+     * to use the new vehicle number, preserving the certificate-to-vehicle matching.
+     */
+    public void renameCertificatesForVehicle(String category, String id,
+                                             String oldVehicleNo, String newVehicleNo) throws IOException {
+        String safeOldNo = sanitizeFilename(oldVehicleNo);
+        String safeNewNo = sanitizeFilename(newVehicleNo);
+
+        if (safeOldNo.equals(safeNewNo)) {
+            return; // No rename needed
+        }
+
+        String directoryPath = buildDirectoryPath(category, id);
+        Path directory = Paths.get(certificatePath, directoryPath);
+
+        if (!Files.exists(directory) || !Files.isDirectory(directory)) {
+            return;
+        }
+
+        try (Stream<Path> files = Files.list(directory)) {
+            List<Path> matchingFiles = files
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().contains(safeOldNo))
+                    .collect(Collectors.toList());
+
+            for (Path oldPath : matchingFiles) {
+                String oldName = oldPath.getFileName().toString();
+                String newName = oldName.replace(safeOldNo, safeNewNo);
+                Path newPath = oldPath.resolveSibling(newName);
+                Files.move(oldPath, newPath, StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+    }
 }

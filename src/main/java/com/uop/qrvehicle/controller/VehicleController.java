@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Vehicle Controller
@@ -63,6 +64,20 @@ public class VehicleController {
                 }
                 model.addAttribute("vehicles", vehicles);
                 log.debug("Found {} vehicles for id={}, status={}", vehicles.size(), id, status);
+
+                // For students, load certificate-to-vehicle map for PDF display
+                if ("student".equalsIgnoreCase(category) && !vehicles.isEmpty()) {
+                    Map<String, List<String>> vehicleCertMap = certificateService.getCertificatesByVehicleMap(
+                            "student", id, vehicles);
+                    model.addAttribute("vehicleCertMap", vehicleCertMap);
+
+                    // Compute cert base URL path: Student/{prefix}/{year}
+                    String[] regParts = id.split("/");
+                    String prefix = regParts.length > 0 ? regParts[0] : "S";
+                    String yearPart = regParts.length > 1 ? regParts[1] : "00";
+                    String year = yearPart.length() == 2 ? "20" + yearPart : yearPart;
+                    model.addAttribute("certBasePath", "/uploads/certificates/Student/" + prefix + "/" + year);
+                }
             }
             
             return "vehicle/insert";
@@ -137,6 +152,16 @@ public class VehicleController {
             vehicleService.updateVehicle(id, oldVehicleNo, vehicleNo, owner, 
                                         approvalStatus, vehicleTypeId, mobile, email, username);
             
+            // Rename existing certificate files if vehicle number changed
+            if (!oldVehicleNo.equals(vehicleNo)) {
+                try {
+                    certificateService.renameCertificatesForVehicle(category, id, oldVehicleNo, vehicleNo);
+                } catch (Exception renameEx) {
+                    log.warn("Failed to rename certificates for vehicle {} -> {}: {}", 
+                             oldVehicleNo, vehicleNo, renameEx.getMessage());
+                }
+            }
+
             // Upload new certificate if provided
             if (certificate != null && !certificate.isEmpty()) {
                 certificateService.uploadCertificate(certificate, category, id, vehicleNo);

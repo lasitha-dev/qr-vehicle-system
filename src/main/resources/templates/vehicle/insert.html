@@ -10,22 +10,38 @@
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
-        .select2-container { width: 100% !important; }
+        .select2-container {
+            width: 100% !important;
+        }
+
         .select2-container--default .select2-selection--single {
             height: 42px;
             padding: 6px 12px;
             border: 1px solid #ddd;
             border-radius: 8px;
         }
+
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             line-height: 28px;
         }
+
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 40px;
         }
-        .cascade-group { margin-bottom: 15px; }
-        .cascade-group label { font-weight: 600; margin-bottom: 5px; display: block; }
-        #personSelectionArea { display: none; }
+
+        .cascade-group {
+            margin-bottom: 15px;
+        }
+
+        .cascade-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        #personSelectionArea {
+            display: none;
+        }
     </style>
 </head>
 
@@ -144,26 +160,38 @@
                             <br>
                             <small style="color: #888;">Added by <span th:text="${v.createdBy}"></span> on <span
                                     th:text="${v.createDate}"></span></small>
+                            <!-- Matched PDF certificates (for students) -->
+                            <div th:if="${vehicleCertMap != null and vehicleCertMap.containsKey(v.vehicleNo) and not #lists.isEmpty(vehicleCertMap.get(v.vehicleNo))}"
+                                style="margin-top: 6px;">
+                                <th:block th:each="cert : ${vehicleCertMap.get(v.vehicleNo)}">
+                                    <a th:href="@{${certBasePath} + '/' + ${cert}}" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; color: #800000;
+                                              text-decoration: none; font-size: 12px; font-weight: 600;
+                                              padding: 3px 8px; background: #fff5f5; border: 1px solid #e0c0c0;
+                                              border-radius: 5px; margin-right: 5px; margin-top: 3px;
+                                              transition: all 0.2s;"
+                                        onmouseover="this.style.background='#800000';this.style.color='white';this.style.borderColor='#800000'"
+                                        onmouseout="this.style.background='#fff5f5';this.style.color='#800000';this.style.borderColor='#e0c0c0'">
+                                        📄 <span th:text="${cert}">certificate.pdf</span>
+                                    </a>
+                                </th:block>
+                            </div>
                         </div>
                         <!-- Admin action buttons -->
                         <div style="display: flex; gap: 6px; margin-left: 10px; flex-shrink: 0;">
                             <button type="button" class="btn btn-primary btn-sm edit-vehicle-btn" title="Edit"
-                                    th:data-empid="${v.empId}"
-                                    th:data-vehicleno="${v.vehicleNo}"
-                                    th:data-owner="${v.owner}"
-                                    th:data-vehicletypeid="${v.vehicleType != null ? v.vehicleType.id : ''}"
-                                    th:data-mobile="${v.mobile}"
-                                    th:data-email="${v.email}"
-                                    th:data-approvalstatus="${v.approvalStatus}"
-                                    style="padding: 4px 10px; font-size: 13px;">✏️ Edit</button>
+                                th:data-empid="${v.empId}" th:data-vehicleno="${v.vehicleNo}" th:data-owner="${v.owner}"
+                                th:data-vehicletypeid="${v.vehicleType != null ? v.vehicleType.id : ''}"
+                                th:data-mobile="${v.mobile}" th:data-email="${v.email}"
+                                th:data-approvalstatus="${v.approvalStatus}"
+                                style="padding: 4px 10px; font-size: 13px;">✏️ Edit</button>
                             <form th:action="@{/vehicle/delete}" method="post" style="margin: 0;"
-                                  onsubmit="return confirm('Are you sure you want to delete this vehicle?');">
+                                onsubmit="return confirm('Are you sure you want to delete this vehicle?');">
                                 <input type="hidden" name="category" th:value="${category}">
                                 <input type="hidden" name="id" th:value="${selectedId}">
                                 <input type="hidden" name="vehicleNo" th:value="${v.vehicleNo}">
                                 <input type="hidden" name="status" th:value="${selectedStatus}">
                                 <button type="submit" class="btn btn-danger btn-sm" title="Delete"
-                                        style="padding: 4px 10px; font-size: 13px;">🗑️ Delete</button>
+                                    style="padding: 4px 10px; font-size: 13px;">🗑️ Delete</button>
                             </form>
                         </div>
                     </div>
@@ -178,8 +206,7 @@
              background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
             <div style="background:#fff; border-radius:12px; padding:30px; max-width:550px; width:90%;
                  max-height:90vh; overflow-y:auto; box-shadow:0 10px 40px rgba(0,0,0,0.3); position:relative;">
-                <button type="button" onclick="closeEditModal()"
-                        style="position:absolute; top:10px; right:15px; border:none; background:none;
+                <button type="button" onclick="closeEditModal()" style="position:absolute; top:10px; right:15px; border:none; background:none;
                         font-size:22px; cursor:pointer; color:#888;">✕</button>
                 <h3 style="margin-top:0; margin-bottom:20px; color:#2c3e50;">Edit Vehicle</h3>
 
@@ -210,8 +237,8 @@
 
                     <div class="form-group">
                         <label>Mobile No:</label>
-                        <input type="text" name="mobile" id="editMobile" class="form-control"
-                               pattern="\+?\d{7,15}" title="Enter a valid phone number">
+                        <input type="text" name="mobile" id="editMobile" class="form-control" pattern="\+?\d{7,15}"
+                            title="Enter a valid phone number">
                     </div>
 
                     <div class="form-group">
@@ -235,8 +262,7 @@
 
                     <div style="display:flex; gap:10px; margin-top:20px;">
                         <button type="submit" class="btn btn-success">Save Changes</button>
-                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()"
-                                style="background:#6c757d; color:#fff; border:none; padding:8px 18px;
+                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()" style="background:#6c757d; color:#fff; border:none; padding:8px 18px;
                                 border-radius:6px; cursor:pointer;">Cancel</button>
                     </div>
                 </form>
