@@ -55,7 +55,7 @@ public class SecurityConfig {
                 // Public resources
                 .requestMatchers("/", "/login", "/error", "/error/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER")
+                .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER", "STUDENT", "USER", "GOOGLEUSER")
 
                 // Admin-only routes
                 .requestMatchers("/admin/**").hasRole("ADMIN")

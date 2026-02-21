@@ -4,196 +4,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Vehicle Registration - QR Vehicle System</title>
-    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
-    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <title>Register Vehicle - QR Vehicle System</title>
     <style>
-        .person-card {
-            display: flex; gap: 20px; align-items: flex-start; padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 10px;
-            border-left: 5px solid #800000; margin-bottom: 20px;
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(#eef2f5, #d9e2ec);
+            margin: 0;
+            padding: 30px;
         }
-        .person-photo { width: 100px; height: 130px; object-fit: cover; border-radius: 8px; border: 2px solid #800000; }
-        .person-photo-placeholder { width: 100px; height: 130px; background: #ddd; border-radius: 8px; display: flex; 
-            align-items: center; justify-content: center; font-size: 40px; color: #999; border: 2px solid #ccc; }
-        .person-info { flex: 1; }
-        .person-info h3 { margin: 0 0 8px; color: #800000; font-size: 18px; }
-        .person-info .info-row { display: flex; gap: 8px; margin-bottom: 4px; font-size: 14px; }
-        .person-info .info-label { font-weight: 600; color: #555; min-width: 120px; }
-        .semester-badge { background: #800000; color: white; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-        .existing-vehicle { padding: 12px; background: #fafafa; border-radius: 8px; margin-bottom: 10px; 
-            border-left: 4px solid #f0ad4e; display: flex; justify-content: space-between; align-items: center; }
-        .existing-vehicle .vehicle-main { flex: 1; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .person-card { flex-direction: column; align-items: center; text-align: center; } }
+
+        /* Main content box */
+        #main {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 30px;
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* Heading */
+        h2 {
+            margin-top: 0;
+            color: #1a3c6e;
+            font-size: 26px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.5px;
+            margin-bottom: 25px;
+        }
+
+        /* Info Card */
+        .infoCard {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            background: #f7fbff;
+            border-left: 5px solid #1a73e8;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .person-photo {
+            width: 80px;
+            height: 100px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+        }
+
+        .person-photo-placeholder {
+            width: 80px;
+            height: 100px;
+            background: #ddd;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #444;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        .infoLabel {
+            font-size: 18px;
+            font-weight: 700;
+            color: #222;
+            text-transform: uppercase;
+        }
+
+        .infoSub {
+            font-size: 14px;
+            margin-top: 5px;
+            color: #444;
+            text-transform: uppercase;
+        }
+
+        .small {
+            color: #666;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        /* Messages */
+        .message {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #e7fff1;
+            border-left: 5px solid #3cbc68;
+            color: #1e5733;
+        }
+
+        .message.error {
+            background: #ffe6e6;
+            border-left: 5px solid #ff4d4d;
+            color: #8b0000;
+        }
+
+        /* Form Design */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #1a3c6e;
+            font-size: 15px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        select,
+        input[type="file"] {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccd8e0;
+            background: #f8fbfd;
+            font-size: 15px;
+            transition: 0.2s;
+            width: 100%;
+            max-width: 400px;
+            /* Limit input width to match screenshot roughly */
+            box-sizing: border-box;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            background: #fff;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 5px rgba(26, 115, 232, 0.3);
+        }
+
+        /* Button */
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.25s;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #1557b0;
+            transform: translateY(-2px);
+        }
+
+        /* Vehicle List */
+        .vehicleList {
+            background: #f9fbff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 25px;
+            border-left: 4px solid #1a73e8;
+        }
+
+        .vehicleList h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #222;
+        }
+
+        .vehicleItem {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .vehicleItem:last-child {
+            border-bottom: none;
+            margin-bottom: 0px;
+            padding-bottom: 0px;
+        }
+
+        .vehicleItem strong {
+            color: #222;
+            font-size: 16px;
+        }
+
+        .vehicleItem .small {
+            font-size: 12px;
+            color: #666;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .badge-pending {
+            background: #f0ad4e;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-approved {
+            background: #5cb85c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-rejected {
+            background: #d9534f;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Uploaded Certificates List */
+        .certList h4 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: #222;
+        }
+
+        .certList ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .certList li {
+            margin-bottom: 5px;
+        }
+
+        .certList a {
+            color: blue;
+            text-decoration: underline;
+            font-size: 14px;
+        }
+
+        /* Back link */
+        .backLink {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .backLink a {
+            color: #1a3c6e;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .backLink a:hover {
+            text-decoration: underline;
+        }
+
+        /* Fade In animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 
 <body>
-    <!-- Header -->
-    <header class="site-header">
-        <div class="header-content">
-            <div class="logo-section">
-                <img th:src="@{/images/UoPcrest.jpg}" alt="Logo" class="logo">
-                <h1>My Vehicle Registration</h1>
-            </div>
-            <div class="header-actions">
-                <a th:href="@{/dashboard}" class="btn btn-primary">⬅ Dashboard</a>
-                <a th:href="@{/logout}" class="btn btn-logout">Logout</a>
-            </div>
-        </div>
-    </header>
+    <div id="main">
+        <h2>Register Vehicle</h2>
 
-    <div class="container">
         <!-- Alerts -->
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div th:if="${success}" class="message success" th:text="'✅ ' + ${success}"></div>
+        <div th:if="${error}" class="message error" th:text="'❌ ' + ${error}"></div>
 
         <!-- Person Info Card -->
-        <div class="card" th:if="${personName}">
-            <div class="person-card">
-                <img th:if="${personImageUrl}" th:src="${personImageUrl}" alt="Photo" class="person-photo"
-                     onerror="this.outerHTML='<div class=\'person-photo-placeholder\'>👤</div>'">
-                <div th:unless="${personImageUrl}" class="person-photo-placeholder">👤</div>
-                
-                <div class="person-info">
-                    <h3 th:text="${personName}">Person Name</h3>
-                    
-                    <div class="info-row">
-                        <span class="info-label">ID:</span>
-                        <span th:text="${userId}">ID</span>
-                        <span class="badge" th:classappend="${category == 'student' ? 'badge-success' : 'badge-warning'}"
-                              th:text="${#strings.capitalize(category)}" style="margin-left: 10px;">Category</span>
-                    </div>
+        <div class="infoCard" th:if="${personName}">
+            <img th:if="${personImageUrl}" th:src="${personImageUrl}" alt="Photo" class="person-photo"
+                onerror="this.outerHTML='<div class=\'person-photo-placeholder\'>No Image</div>'">
+            <div th:unless="${personImageUrl}" class="person-photo-placeholder">No Image</div>
 
+            <div>
+                <div class="infoLabel">
+                    <span th:text="${personName}">Person Name</span>
+                    (<span th:text="${userId}">ID</span>)
+                </div>
+
+                <div class="infoSub">
                     <!-- Student-specific info -->
-                    <div th:if="${category == 'student'}">
-                        <div class="info-row" th:if="${personFaculty}">
-                            <span class="info-label">Faculty:</span>
-                            <span th:text="${personFaculty}">Faculty</span>
-                        </div>
-                        <div class="info-row" th:if="${personCourse}">
-                            <span class="info-label">Course:</span>
-                            <span th:text="${personCourse}">Course</span>
-                        </div>
-                        <div class="info-row" th:if="${personSemester}">
-                            <span class="info-label">Semester:</span>
-                            <span class="semester-badge" th:text="${#strings.toUpperCase(personSemester)}">SEMESTER</span>
-                            <span th:if="${personSemesterRegDate}" style="color: #666; font-size: 12px; margin-left: 8px;">
-                                (Reg: <span th:text="${personSemesterRegDate}"></span>)
-                            </span>
-                        </div>
-                    </div>
+                    <th:block th:if="${category == 'student'}">
+                        <span th:if="${personFaculty}" th:text="${personFaculty}">Faculty</span>
+                        <span th:if="${personCourse}" th:text="' • ' + ${personCourse}">Course</span>
+                        <span th:if="${personSemester}" th:text="' • Semester: ' + ${personSemester}">Semester</span>
+                    </th:block>
 
                     <!-- Staff-specific info -->
-                    <div th:if="${category != 'student'}">
-                        <div class="info-row" th:if="${personDesignation}">
-                            <span class="info-label">Designation:</span>
-                            <span th:text="${personDesignation}">Designation</span>
-                        </div>
-                        <div class="info-row" th:if="${personDepartment}">
-                            <span class="info-label">Department:</span>
-                            <span th:text="${personDepartment}">Department</span>
-                        </div>
-                    </div>
+                    <th:block th:if="${category != 'student'}">
+                        <span th:if="${personDepartment}" th:text="${personDepartment}">Department</span>
+                        <span th:if="${personDesignation}" th:text="' • ' + ${personDesignation}">Designation</span>
+                    </th:block>
                 </div>
-            </div>
-        </div>
 
-        <!-- Existing Vehicles -->
-        <div class="card" th:if="${existingVehicles and not #lists.isEmpty(existingVehicles)}">
-            <div class="card-header">
-                <h2 class="card-title">📋 Your Registered Vehicles</h2>
-            </div>
-            <div style="padding: 15px;">
-                <div th:each="v : ${existingVehicles}" class="existing-vehicle">
-                    <div class="vehicle-main">
-                        <strong th:text="${v.vehicleTypeDisplay + ' ' + v.vehicleNo}">Vehicle</strong>
-                        <span th:if="${v.owner}"> — Owner: <span th:text="${v.owner}"></span></span>
-                        <span class="badge" th:classappend="${v.approvalStatus == 'Approved' ? 'badge-success' : 
-                                           (v.approvalStatus == 'Pending' ? 'badge-warning' : 'badge-danger')}"
-                              th:text="${v.approvalStatus}" style="margin-left: 10px;">Status</span>
-                        <br>
-                        <small style="color: #666;">
-                            <span th:if="${v.mobile}">📱 <span th:text="${v.mobile}"></span></span>
-                            <span th:if="${v.email}"> | ✉️ <span th:text="${v.email}"></span></span>
-                        </small>
-                    </div>
+                <div class="small">
+                    Category: <strong th:text="${#strings.capitalize(category)}">Category</strong>
+                    <span th:if="${personSemesterRegDate}"
+                        th:text="' • Registered: ' + ${personSemesterRegDate}"></span>
                 </div>
-            </div>
-        </div>
-
-        <div class="card" th:if="${existingVehicles != null and #lists.isEmpty(existingVehicles)}">
-            <div style="padding: 20px; text-align: center; color: #666;">
-                You have no registered vehicles yet.
             </div>
         </div>
 
         <!-- Add New Vehicle Form -->
-        <div class="card" th:if="${personName}">
-            <div class="card-header">
-                <h2 class="card-title">➕ Register a New Vehicle</h2>
+        <form th:action="@{/my/vehicle/add}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="userId" th:value="${userId}">
+            <input type="hidden" name="category" th:value="${category}">
+
+            <div>
+                <label>Vehicle Number:</label>
+                <input type="text" name="vehicleNo" required pattern="[A-Za-z0-9/\-\s]+"
+                    title="Letters, numbers, /, - and spaces only">
             </div>
 
-            <form th:action="@{/my/vehicle/add}" method="post" enctype="multipart/form-data" style="padding: 20px;">
-                <input type="hidden" name="userId" th:value="${userId}">
-                <input type="hidden" name="category" th:value="${category}">
+            <div>
+                <label>Vehicle Owner Name:</label>
+                <input type="text" name="owner" required th:value="${personName}">
+            </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Vehicle Number <span style="color: red;">*</span></label>
-                        <input type="text" name="vehicleNo" class="form-control" placeholder="e.g., ABC-1234"
-                               required pattern="[A-Za-z0-9/\-\s]+" title="Letters, numbers, /, - and spaces only">
-                    </div>
+            <div>
+                <label>Vehicle Type</label>
+                <select name="vehicleTypeId" required>
+                    <option value="">-- Select Vehicle Type --</option>
+                    <option th:each="vt : ${vehicleTypes}" th:value="${vt.id}"
+                        th:text="${vt.icon + ' ' + vt.displayName}">Type</option>
+                </select>
+            </div>
 
-                    <div class="form-group">
-                        <label>Vehicle Type <span style="color: red;">*</span></label>
-                        <select name="vehicleTypeId" class="form-control" required>
-                            <option value="">-- Select Vehicle Type --</option>
-                            <option th:each="vt : ${vehicleTypes}" th:value="${vt.id}" 
-                                    th:text="${vt.displayName}">Type</option>
-                        </select>
-                    </div>
-                </div>
+            <div>
+                <label>Mobile No:</label>
+                <input type="tel" name="mobile" required pattern="\+?\d{7,15}"
+                    title="Enter a valid phone number (7-15 digits)">
+            </div>
 
-                <div class="form-group">
-                    <label>Owner Name <span style="color: red;">*</span></label>
-                    <input type="text" name="owner" class="form-control" placeholder="Vehicle owner's full name"
-                           th:value="${personName}" required>
-                </div>
+            <div>
+                <label>Email Address:</label>
+                <input type="email" name="email" required>
+            </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Mobile No <span style="color: red;">*</span></label>
-                        <input type="tel" name="mobile" class="form-control" placeholder="+94771234567"
-                               required pattern="\+?\d{7,15}" title="Enter a valid phone number (7-15 digits)">
-                    </div>
+            <div>
+                <label>Upload Registration Certificate:</label>
+                <input type="file" name="certificate" accept="application/pdf" required>
+            </div>
 
-                    <div class="form-group">
-                        <label>Email Address <span style="color: red;">*</span></label>
-                        <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
-                    </div>
-                </div>
+            <button type="submit">Register Vehicle</button>
+        </form>
 
-                <div class="form-group">
-                    <label>Registration Certificate (PDF) <span style="color: red;">*</span></label>
-                    <input type="file" name="certificate" class="form-control" accept="application/pdf" required>
-                    <small style="color: #666;">Upload your vehicle registration certificate (PDF only, max 10MB)</small>
-                </div>
+        <!-- Existing Vehicles List -->
+        <div class="vehicleList" th:if="${existingVehicles != null and not #lists.isEmpty(existingVehicles)}">
+            <h3>Registered Vehicles</h3>
+            <ul style="padding-left: 20px; list-style-type: disc; margin: 0;">
+                <li th:each="v : ${existingVehicles}" class="vehicleItem">
+                    <strong th:text="${v.vehicleTypeIcon + ' ' + v.vehicleNo}">🚗 Vehicle No</strong>
+                    <br>
+                    <span th:text="${v.owner}" style="color: #444; font-size: 14px;">Owner Name</span>
+                    <span class="small">
+                        <span th:text="${v.category}">Type</span>
+                        <span th:if="${v.createdDate != null}"
+                            th:text="' | ' + ${#strings.substring(v.createdDate, 0, 19)}">Date</span>
+                        <span th:if="${v.mobile != null}" th:text="' | ' + ${v.mobile}">Mobile</span>
+                        <span th:text="' | studservices'">studservices</span>
+                        <!-- Status Badge -->
+                        <span th:class="${v.approvalStatus == 'Approved' ? 'badge-approved' : 
+                                        (v.approvalStatus == 'Pending' ? 'badge-pending' : 'badge-rejected')}"
+                            th:text="${v.approvalStatus}" style="margin-left: 5px;">Status</span>
+                    </span>
+                </li>
+            </ul>
+        </div>
 
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button type="submit" class="btn btn-success" style="flex: 1; padding: 12px; font-size: 16px;">
-                        🚗 Register Vehicle
-                    </button>
-                    <button type="reset" class="btn" style="background: #ccc; padding: 12px;">Reset</button>
-                </div>
-            </form>
+        <!-- Uploaded Certificates -->
+        <div class="certList" th:if="${certificates != null and not #lists.isEmpty(certificates)}">
+            <h4>Uploaded Certificates:</h4>
+            <ul>
+                <li th:each="cert : ${certificates}">
+                    <a th:href="@{'/Certificate/Student/' + ${userIdPrefix} + '/' + ${userIdYear} + '/' + ${cert}}"
+                        target="_blank" th:text="${cert}">certificate.pdf</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="backLink">
+            <a th:href="@{/dashboard}">Back to Dashboard</a>
         </div>
     </div>
-
-    <footer class="site-footer">
-        COPYRIGHT 2025 | INFORMATION TECHNOLOGY CENTER | UNIVERSITY OF PERADENIYA
-    </footer>
 </body>
 
 </html>

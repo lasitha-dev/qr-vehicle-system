@@ -8,29 +8,152 @@
     <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
     <link th:href="@{/css/style.css}" rel="stylesheet">
     <style>
-        .student-header { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; }
-        .student-photo { width: 120px; height: 160px; object-fit: cover; border-radius: 8px; border: 2px solid #800000; }
-        .student-photo-placeholder { width: 120px; height: 160px; background: #f0f0f0; border-radius: 8px; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 48px; color: #ccc; }
-        .student-basic { flex: 1; }
-        .student-basic table { width: 100%; }
-        .student-basic td { padding: 3px 8px; font-size: 14px; }
-        .student-basic td:first-child { font-weight: 600; width: 180px; color: #555; }
-        .detail-section { margin-bottom: 20px; }
-        .detail-section h3 { background: #800000; color: white; padding: 8px 15px; border-radius: 6px 6px 0 0; margin: 0; font-size: 15px; }
-        .detail-section .section-content { border: 1px solid #ddd; border-top: none; padding: 15px; border-radius: 0 0 6px 6px; }
-        .detail-section table { width: 100%; border-collapse: collapse; }
-        .detail-section table td { padding: 5px 10px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-        .detail-section table td:first-child { font-weight: 600; width: 200px; color: #555; }
-        .status-registered { color: #28a745; font-weight: bold; }
-        .status-suspended { color: #dc3545; font-weight: bold; }
-        .status-deferred { color: #0059b3; font-weight: bold; }
-        .status-cancelled { color: #dc3545; font-weight: bold; }
-        .print-btn { background: #17a2b8; color: white; padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
-        .print-btn:hover { background: #138496; }
-        .history-list { list-style: none; padding: 0; }
-        .history-list li { padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-        .vehicle-card { background: #fafafa; border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #f0ad4e; }
-        @media print { .no-print { display: none !important; } .container { max-width: 100%; } }
+        .student-header {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .student-photo {
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #800000;
+        }
+
+        .student-photo-placeholder {
+            width: 120px;
+            height: 160px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #ccc;
+        }
+
+        .student-basic {
+            flex: 1;
+        }
+
+        .student-basic table {
+            width: 100%;
+        }
+
+        .student-basic td {
+            padding: 3px 8px;
+            font-size: 14px;
+        }
+
+        .student-basic td:first-child {
+            font-weight: 600;
+            width: 180px;
+            color: #555;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section h3 {
+            background: #800000;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px 6px 0 0;
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .detail-section .section-content {
+            border: 1px solid #ddd;
+            border-top: none;
+            padding: 15px;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .detail-section table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .detail-section table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .detail-section table td:first-child {
+            font-weight: 600;
+            width: 200px;
+            color: #555;
+        }
+
+        .status-registered {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-suspended {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .status-deferred {
+            color: #0059b3;
+            font-weight: bold;
+        }
+
+        .status-cancelled {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .print-btn {
+            background: #17a2b8;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .print-btn:hover {
+            background: #138496;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .history-list li {
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .vehicle-card {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #f0ad4e;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -57,8 +180,8 @@
                 <h2 class="card-title">Search Student</h2>
             </div>
             <form th:action="@{/student/detail}" method="get" style="display: flex; gap: 10px; padding: 15px;">
-                <input type="text" name="regno" class="form-control" placeholder="Enter Registration No (e.g., AG/23/218)"
-                    th:value="${searchRegNo}" required>
+                <input type="text" name="regno" class="form-control"
+                    placeholder="Enter Registration No (e.g., AG/23/218)" th:value="${searchRegNo}" required>
                 <button type="submit" class="btn btn-primary">View</button>
             </form>
         </div>
@@ -68,14 +191,15 @@
 
         <!-- Student Profile -->
         <div th:if="${student}">
-            
+
             <!-- Basic Info Header -->
             <div class="card">
                 <div class="student-header">
-                    <img th:if="${student.imageUrl}" th:src="${student.imageUrl}" alt="Student Photo" class="student-photo"
-                         onerror="this.outerHTML='<div class=\'student-photo-placeholder\'>👤</div>'">
+                    <img th:if="${student.imageUrl}" th:src="${student.imageUrl}" alt="Student Photo"
+                        class="student-photo"
+                        onerror="this.outerHTML='<div class=\'student-photo-placeholder\'>👤</div>'">
                     <div th:unless="${student.imageUrl}" class="student-photo-placeholder">👤</div>
-                    
+
                     <div class="student-basic">
                         <table>
                             <tr>
@@ -92,7 +216,8 @@
                             </tr>
                             <tr>
                                 <td>Status</td>
-                                <td><span th:classappend="${student.statusClass}" th:text="${student.status}">STATUS</span></td>
+                                <td><span th:classappend="${student.statusClass}"
+                                        th:text="${student.status}">STATUS</span></td>
                             </tr>
                             <tr>
                                 <td>Faculty</td>
@@ -104,8 +229,8 @@
                             </tr>
                             <tr th:if="${student.currentSemester}">
                                 <td>Current Semester</td>
-                                <td><strong th:text="${#strings.toUpperCase(student.semesterName ?: '')}" 
-                                            style="color: #800000;">SEMESTER</strong>
+                                <td><strong th:text="${#strings.toUpperCase(student.semesterName ?: '')}"
+                                        style="color: #800000;">SEMESTER</strong>
                                     <span th:if="${student.semesterRegDate}" style="color: #666; font-size: 12px;">
                                         (Registered: <span th:text="${student.semesterRegDate}"></span>)
                                     </span>
@@ -290,13 +415,13 @@
             </div>
 
             <!-- Certificates -->
-            <div class="detail-section" th:if="${certificates and not #lists.isEmpty(certificates)}">
+            <div class="detail-section" th:if="${certificates != null and not #lists.isEmpty(certificates)}">
                 <h3>📄 Certificates</h3>
                 <div class="section-content">
                     <ul style="list-style: none; padding: 0;">
                         <li th:each="cert : ${certificates}" style="padding: 5px 0;">
                             <a th:href="@{'/uploads/certificates/Student/' + ${student.regNo} + '/' + ${cert}}"
-                               th:text="${cert}" target="_blank" style="color: #800000;">Certificate</a>
+                                th:text="${cert}" target="_blank" style="color: #800000;">Certificate</a>
                         </li>
                     </ul>
                 </div>

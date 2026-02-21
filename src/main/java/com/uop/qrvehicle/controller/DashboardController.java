@@ -90,6 +90,12 @@ public class DashboardController {
             case "searcher":
                 tasks.add(new TaskDTO("Searcher / Search Vehicle", "/vehicle/search", "🚗🔍", "#6f42c1"));
                 break;
+                
+            case "student":
+            case "googleuser":
+            case "user":
+                tasks.add(new TaskDTO("User Role", "/my/vehicle", "👤", "#1a73e8"));
+                break;
 
             default:
                 // Unknown role — no tasks

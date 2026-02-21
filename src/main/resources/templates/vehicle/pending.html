@@ -63,6 +63,12 @@
                                 <br th:if="${vehicle.mobile and vehicle.email}">
                                 <span th:if="${vehicle.email}">✉️ <span th:text="${vehicle.email}"></span></span>
                             </small>
+                            <div th:if="${#strings.equalsIgnoreCase(vehicle.category, 'student')}"
+                                style="margin-top: 5px;">
+                                <a th:href="@{'/Certificate/Student/' + ${#strings.substring(vehicle.empId, 0, 1)} + '/' + ${#strings.substring(vehicle.empId, 2, 4)} + '/' + ${vehicle.empId} + '.pdf'}"
+                                    target="_blank" class="btn btn-sm btn-info"
+                                    style="font-size: 11px; padding: 2px 8px;">View Certificate</a>
+                            </div>
                         </td>
                         <td>
                             <small th:text="${vehicle.createdBy}"></small><br>
