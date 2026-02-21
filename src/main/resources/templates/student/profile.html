@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - QR Vehicle System</title>
+    <link rel="shortcut icon" th:href="@{/images/UoPcrest.jpg}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            min-height: 100vh;
+        }
+
+        /* ── Header ─────────────────────────────── */
+        .site-header {
+            background: #800000;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .site-header .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .site-header .logo-section img {
+            width: 40px;
+            height: auto;
+        }
+
+        .site-header .logo-section h1 {
+            font-size: 18pt;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #f0ad4e;
+            color: #333;
+        }
+
+        .btn-primary:hover {
+            background: #ec971f;
+        }
+
+        .btn-logout {
+            background: #d9534f;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background: #c9302c;
+        }
+
+        /* ── Container ──────────────────────────── */
+        .container {
+            max-width: 900px;
+            margin: 25px auto;
+            padding: 0 20px 40px;
+        }
+
+        /* ── Alerts ─────────────────────────────── */
+        .alert {
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #e7fff1;
+            border-left: 5px solid #3cbc68;
+            color: #1e5733;
+        }
+
+        .alert-danger {
+            background: #ffe6e6;
+            border-left: 5px solid #ff4d4d;
+            color: #8b0000;
+        }
+
+        /* ── Profile Header Card ────────────────── */
+        .profile-header {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .student-photo {
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 3px solid #800000;
+            flex-shrink: 0;
+        }
+
+        .student-photo-placeholder {
+            width: 120px;
+            height: 160px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            border: 3px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #ccc;
+            flex-shrink: 0;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .profile-info td {
+            padding: 4px 10px;
+            font-size: 14px;
+            vertical-align: top;
+        }
+
+        .profile-info td:first-child {
+            font-weight: 600;
+            width: 170px;
+            color: #555;
+        }
+
+        /* ── Detail Sections ────────────────────── */
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section h3 {
+            background: #800000;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px 8px 0 0;
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .section-content {
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-top: none;
+            padding: 18px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .section-content table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .section-content table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 14px;
+            vertical-align: top;
+        }
+
+        .section-content table td:first-child {
+            font-weight: 600;
+            width: 200px;
+            color: #555;
+        }
+
+        /* ── Status Badges ──────────────────────── */
+        .status-registered {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-suspended {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .status-deferred {
+            color: #0059b3;
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #f0ad4e;
+            color: white;
+        }
+
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* ── Vehicle Cards ──────────────────────── */
+        .vehicle-card {
+            background: #fafcff;
+            border-radius: 10px;
+            padding: 15px 18px;
+            margin-bottom: 12px;
+            border-left: 4px solid #f0ad4e;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .vehicle-card .vehicle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .vehicle-card .vehicle-header strong {
+            font-size: 16px;
+            color: #222;
+        }
+
+        .vehicle-card .vehicle-details {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .vehicle-card .cert-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #800000;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 4px 10px;
+            background: #fff5f5;
+            border: 1px solid #e0c0c0;
+            border-radius: 6px;
+            transition: all 0.2s;
+            margin-right: 6px;
+            margin-top: 4px;
+        }
+
+        .vehicle-card .cert-link:hover {
+            background: #800000;
+            color: white;
+            border-color: #800000;
+        }
+
+        .no-vehicles {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        /* ── Register Vehicle Button ────────────── */
+        .register-btn-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .btn-register {
+            background: #1a73e8;
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-register:hover {
+            background: #1557b0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+        }
+
+        /* ── Modal ──────────────────────────────── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeInOverlay 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            background: #800000;
+            color: white;
+            padding: 18px 24px;
+            border-radius: 14px 14px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-body .form-group {
+            margin-bottom: 16px;
+        }
+
+        .modal-body label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .modal-body input[type="text"],
+        .modal-body input[type="email"],
+        .modal-body input[type="tel"],
+        .modal-body select,
+        .modal-body input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccd8e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8fbfd;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .modal-body input:focus,
+        .modal-body select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+        }
+
+        .modal-body input[type="file"] {
+            padding: 8px;
+            background: white;
+        }
+
+        .modal-body .btn-submit {
+            width: 100%;
+            background: #1a73e8;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+
+        .modal-body .btn-submit:hover {
+            background: #1557b0;
+        }
+
+        /* ── Footer ─────────────────────────────── */
+        .site-footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        /* Animations */
+        @keyframes fadeInOverlay {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ── Responsive ─────────────────────────── */
+        @media (max-width: 600px) {
+            .profile-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .profile-info td:first-child {
+                width: 130px;
+            }
+
+            .site-header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 15px;
+            }
+
+            .site-header .logo-section h1 {
+                font-size: 14pt;
+            }
+
+            .section-content table td:first-child {
+                width: 140px;
+            }
+
+            .register-btn-section {
+                justify-content: center;
+            }
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="logo-section">
+            <img th:src="@{/images/UoPcrest.jpg}" alt="Logo">
+            <h1>My Profile</h1>
+        </div>
+        <div class="header-actions no-print">
+            <a th:href="@{/dashboard}" class="btn btn-primary">⬅ Dashboard</a>
+            <a th:href="@{/logout}" class="btn btn-logout">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success" th:text="'✅ ' + ${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="'❌ ' + ${error}"></div>
+
+        <!-- Profile Header Card -->
+        <div class="profile-header" th:if="${student}">
+            <img th:if="${student.imageUrl}" th:src="${student.imageUrl}" alt="Student Photo" class="student-photo"
+                onerror="this.outerHTML='<div class=\'student-photo-placeholder\'>👤</div>'">
+            <div th:unless="${student.imageUrl}" class="student-photo-placeholder">👤</div>
+
+            <div class="profile-info">
+                <table>
+                    <tr>
+                        <td>Registration No</td>
+                        <td><strong th:text="${#strings.toUpperCase(student.regNo)}">REG NO</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Name with Initials</td>
+                        <td th:text="${student.nameWithInitials}">NAME</td>
+                    </tr>
+                    <tr>
+                        <td>NIC No</td>
+                        <td th:text="${#strings.toUpperCase(student.nic ?: '')}">NIC</td>
+                    </tr>
+                    <tr>
+                        <td>Status</td>
+                        <td><span th:classappend="${student.statusClass}" th:text="${student.status}">STATUS</span></td>
+                    </tr>
+                    <tr>
+                        <td>Faculty</td>
+                        <td th:text="${#strings.toUpperCase(student.facultyName ?: '')}">FACULTY</td>
+                    </tr>
+                    <tr>
+                        <td>Course</td>
+                        <td th:text="${#strings.toUpperCase(student.courseName ?: '')}">COURSE</td>
+                    </tr>
+                    <tr th:if="${student.currentSemester}">
+                        <td>Current Semester</td>
+                        <td>
+                            <strong th:text="${#strings.toUpperCase(student.semesterName ?: '')}"
+                                style="color: #800000;">SEMESTER</strong>
+                            <span th:if="${student.semesterRegDate}" style="color: #666; font-size: 12px;">
+                                (Registered: <span th:text="${student.semesterRegDate}"></span>)
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Personal Information -->
+        <div class="detail-section" th:if="${student}">
+            <h3>📋 Personal Information</h3>
+            <div class="section-content">
+                <table>
+                    <tr>
+                        <td>Full Name</td>
+                        <td th:text="${#strings.toUpperCase(student.fullName ?: '')}">FULL NAME</td>
+                    </tr>
+                    <tr>
+                        <td>Date of Birth</td>
+                        <td th:text="${student.dateOfBirth}">DOB</td>
+                    </tr>
+                    <tr>
+                        <td>Gender</td>
+                        <td th:text="${student.gender}">GENDER</td>
+                    </tr>
+                    <tr>
+                        <td>Religion</td>
+                        <td th:text="${student.religion}">RELIGION</td>
+                    </tr>
+                    <tr>
+                        <td>Ethnicity</td>
+                        <td th:text="${student.ethnicity}">ETHNICITY</td>
+                    </tr>
+                    <tr>
+                        <td>Selection Type</td>
+                        <td th:text="${#strings.toUpperCase(student.selectType ?: '')}">TYPE</td>
+                    </tr>
+                    <tr>
+                        <td>Registered On</td>
+                        <td th:text="${student.registeredOn}">DATE</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Address & Contact -->
+        <div class="detail-section" th:if="${student}">
+            <h3>📍 Address &amp; Contact</h3>
+            <div class="section-content">
+                <table>
+                    <tr>
+                        <td>Permanent Address</td>
+                        <td th:text="${student.formattedAddress}">ADDRESS</td>
+                    </tr>
+                    <tr th:if="${student.district}">
+                        <td>District</td>
+                        <td th:text="${student.district}">DISTRICT</td>
+                    </tr>
+                    <tr th:if="${student.phone}">
+                        <td>Phone</td>
+                        <td th:text="${student.phone}">PHONE</td>
+                    </tr>
+                    <tr th:if="${student.mobile}">
+                        <td>Mobile</td>
+                        <td th:text="${student.mobile}">MOBILE</td>
+                    </tr>
+                    <tr th:if="${student.email}">
+                        <td>Email</td>
+                        <td th:text="${student.email}">EMAIL</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Parent/Guardian Info -->
+        <div class="detail-section"
+            th:if="${student != null and (student.fatherName != null or student.motherName != null or student.guardianName != null)}">
+            <h3>👨‍👩‍👧 Parent / Guardian Information</h3>
+            <div class="section-content">
+                <table>
+                    <tr th:if="${student.fatherName}">
+                        <td>Father's Name</td>
+                        <td th:text="${student.fatherName}">FATHER</td>
+                    </tr>
+                    <tr th:if="${student.motherName}">
+                        <td>Mother's Name</td>
+                        <td th:text="${student.motherName}">MOTHER</td>
+                    </tr>
+                    <tr th:if="${student.guardianName}">
+                        <td>Guardian's Name</td>
+                        <td th:text="${student.guardianName}">GUARDIAN</td>
+                    </tr>
+                    <tr th:if="${student.guardianAddress}">
+                        <td>Guardian's Address</td>
+                        <td th:text="${student.guardianAddress}">ADDRESS</td>
+                    </tr>
+                    <tr th:if="${student.guardianPhone}">
+                        <td>Guardian's Phone</td>
+                        <td th:text="${student.guardianPhone}">PHONE</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="detail-section" th:if="${student != null and student.emergencyContactName != null}">
+            <h3>🚨 Emergency Contact</h3>
+            <div class="section-content">
+                <table>
+                    <tr>
+                        <td>Contact Name</td>
+                        <td th:text="${student.emergencyContactName}">NAME</td>
+                    </tr>
+                    <tr th:if="${student.emergencyContactPhone}">
+                        <td>Contact Phone</td>
+                        <td th:text="${student.emergencyContactPhone}">PHONE</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Registered Vehicles Section -->
+        <div class="detail-section">
+            <h3>🚗 Registered Vehicles</h3>
+            <div class="section-content">
+                <!-- Register Vehicle Button -->
+                <div class="register-btn-section no-print">
+                    <button type="button" class="btn-register" onclick="openModal()">
+                        ➕ Register Vehicle
+                    </button>
+                </div>
+
+                <!-- Vehicle Cards (read-only) -->
+                <div th:if="${vehicles != null and not #lists.isEmpty(vehicles)}">
+                    <div th:each="v : ${vehicles}" class="vehicle-card">
+                        <div class="vehicle-header">
+                            <strong th:text="${v.vehicleTypeDisplay + ' ' + v.vehicleNo}">Vehicle</strong>
+                            <span class="badge" th:classappend="${v.approvalStatus == 'Approved' ? 'badge-success' :
+                                               (v.approvalStatus == 'Pending' ? 'badge-warning' : 'badge-danger')}"
+                                th:text="${v.approvalStatus}">Status</span>
+                        </div>
+                        <div class="vehicle-details">
+                            <span th:if="${v.owner}">Owner: <span th:text="${v.owner}"></span></span>
+                            <span th:if="${v.mobile}"> &nbsp;|&nbsp; 📱 <span th:text="${v.mobile}"></span></span>
+                            <span th:if="${v.email}"> &nbsp;|&nbsp; ✉️ <span th:text="${v.email}"></span></span>
+                        </div>
+                        <!-- Matched PDF certificates -->
+                        <div
+                            th:if="${vehicleCertMap != null and vehicleCertMap.containsKey(v.vehicleNo) and not #lists.isEmpty(vehicleCertMap.get(v.vehicleNo))}">
+                            <th:block th:each="cert : ${vehicleCertMap.get(v.vehicleNo)}">
+                                <a th:href="@{${certBasePath} + '/' + ${cert}}" target="_blank" class="cert-link">
+                                    📄 <span th:text="${cert}">certificate.pdf</span>
+                                </a>
+                            </th:block>
+                        </div>
+                    </div>
+                </div>
+                <p th:if="${vehicles == null or #lists.isEmpty(vehicles)}" class="no-vehicles">
+                    No vehicles registered yet. Click "Register Vehicle" to add one.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Vehicle Modal -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🚗 Register New Vehicle</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form th:action="@{/my/vehicle/add}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="userId" th:value="${userId}">
+                    <input type="hidden" name="category" th:value="${category}">
+
+                    <div class="form-group">
+                        <label>Vehicle Number</label>
+                        <input type="text" name="vehicleNo" required pattern="[A-Za-z0-9/\-\s]+"
+                            title="Letters, numbers, /, - and spaces only" placeholder="e.g., ABC-1234">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vehicle Owner Name</label>
+                        <input type="text" name="owner" required th:value="${personName}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vehicle Type</label>
+                        <select name="vehicleTypeId" required>
+                            <option value="">-- Select Vehicle Type --</option>
+                            <option th:each="vt : ${vehicleTypes}" th:value="${vt.id}"
+                                th:text="${vt.icon + ' ' + vt.displayName}">Type</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mobile No</label>
+                        <input type="tel" name="mobile" required pattern="\+?\d{7,15}"
+                            title="Enter a valid phone number (7-15 digits)" placeholder="e.g., 0771234567">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" required placeholder="e.g., student@pdn.ac.lk">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload Registration Certificate (PDF)</label>
+                        <input type="file" name="certificate" accept="application/pdf" required>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Register Vehicle</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        COPYRIGHT 2025 | INFORMATION TECHNOLOGY CENTER | UNIVERSITY OF PERADENIYA
+    </footer>
+
+    <script>
+        function openModal() {
+            document.getElementById('registerModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('registerModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('registerModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+
+</html>

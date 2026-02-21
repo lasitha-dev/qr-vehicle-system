@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -86,7 +87,7 @@ public class SelfServiceVehicleController {
         model.addAttribute("category", category);
 
         if ("student".equals(category)) {
-            loadStudentInfo(userId, model);
+            return handleStudentProfile(userId, model);
         } else if ("Permanent".equals(category) || "staff".equals(category)) {
             loadStaffInfo(userId, model);
         } else {
@@ -94,11 +95,51 @@ public class SelfServiceVehicleController {
             return "vehicle/self-service";
         }
 
-        // Load existing vehicles
+        // Load existing vehicles (for non-student flow)
         List<Vehicle> existingVehicles = vehicleService.getVehiclesByEmpId(userId);
         model.addAttribute("existingVehicles", existingVehicles);
 
         return "vehicle/self-service";
+    }
+
+    /**
+     * Handle student profile view.
+     * Loads full student details, vehicles (read-only), and matched certificates.
+     * Returns the student/profile template instead of the self-service form.
+     */
+    private String handleStudentProfile(String regNo, Model model) {
+        // Load full student details (comprehensive info from studdb)
+        Optional<StudentDetailDTO> studentOpt = studentService.getStudentDetail(regNo);
+        if (studentOpt.isPresent()) {
+            model.addAttribute("student", studentOpt.get());
+        } else {
+            // Fallback to basic info if full detail is unavailable
+            studentService.getStudentBasicInfo(regNo).ifPresent(student -> {
+                model.addAttribute("student", student);
+            });
+        }
+
+        // Load basic info for the form (person name, image, etc.)
+        loadStudentInfo(regNo, model);
+
+        // Load vehicles (read-only for students)
+        List<Vehicle> vehicles = vehicleService.getVehiclesByEmpId(regNo);
+        model.addAttribute("vehicles", vehicles);
+
+        // Build certificate-to-vehicle map for PDF display
+        Map<String, List<String>> vehicleCertMap = certificateService.getCertificatesByVehicleMap(
+                "student", regNo, vehicles);
+        model.addAttribute("vehicleCertMap", vehicleCertMap);
+
+        // Compute the certificate base URL path for file serving
+        // CertificateService stores student certs in: Student/{faculty_prefix}/{year}
+        String[] regParts = regNo.split("/");
+        String prefix = regParts.length > 0 ? regParts[0] : "S";
+        String yearPart = regParts.length > 1 ? regParts[1] : "00";
+        String year = yearPart.length() == 2 ? "20" + yearPart : yearPart;
+        model.addAttribute("certBasePath", "/uploads/certificates/Student/" + prefix + "/" + year);
+
+        return "student/profile";
     }
 
     /**

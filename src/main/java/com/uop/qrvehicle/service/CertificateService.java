@@ -4,10 +4,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.uop.qrvehicle.model.Vehicle;
+
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -127,5 +129,41 @@ public class CertificateService {
     private String sanitizeFilename(String filename) {
         if (filename == null) return "unknown";
         return filename.replaceAll("[^A-Za-z0-9._-]", "_");
+    }
+
+    /**
+     * List certificates for a specific vehicle.
+     * Matches by checking if the certificate filename contains the sanitized vehicle number.
+     * Filename convention: {safeId}_{safeVehicleNo}_{timestamp}_{originalFilename}
+     */
+    public List<String> listCertificatesForVehicle(String category, String id, String vehicleNo) throws IOException {
+        String safeVehicleNo = sanitizeFilename(vehicleNo);
+        return listCertificates(category, id).stream()
+                .filter(cert -> cert.contains(safeVehicleNo))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Build a map of vehicle number -> list of certificate filenames.
+     * Used by the student profile page to display PDFs matched to each vehicle.
+     */
+    public Map<String, List<String>> getCertificatesByVehicleMap(String category, String id, List<Vehicle> vehicles) {
+        Map<String, List<String>> map = new LinkedHashMap<>();
+        try {
+            List<String> allCerts = listCertificates(category, id);
+            for (Vehicle v : vehicles) {
+                String safeVehicleNo = sanitizeFilename(v.getVehicleNo());
+                List<String> matched = allCerts.stream()
+                        .filter(cert -> cert.contains(safeVehicleNo))
+                        .collect(Collectors.toList());
+                map.put(v.getVehicleNo(), matched);
+            }
+        } catch (IOException e) {
+            // Return empty map on error
+            for (Vehicle v : vehicles) {
+                map.put(v.getVehicleNo(), Collections.emptyList());
+            }
+        }
+        return map;
     }
 }
