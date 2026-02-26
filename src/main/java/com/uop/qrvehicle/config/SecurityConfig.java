@@ -4,10 +4,13 @@ import com.uop.qrvehicle.security.CustomUserDetailsService;
 import com.uop.qrvehicle.security.KeycloakLogoutHandler;
 import com.uop.qrvehicle.security.KeycloakOidcSuccessHandler;
 import com.uop.qrvehicle.security.OAuth2LoginSuccessHandler;
+import com.uop.qrvehicle.security.StudentAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import jakarta.servlet.DispatcherType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,17 +37,20 @@ public class SecurityConfig {
     private final KeycloakOidcSuccessHandler keycloakOidcSuccessHandler;
     private final KeycloakLogoutHandler keycloakLogoutHandler;
     private final ClientRegistrationRepository clientRegistrationRepository;
+    private final StudentAuthenticationProvider studentAuthenticationProvider;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler,
                          KeycloakOidcSuccessHandler keycloakOidcSuccessHandler,
                          KeycloakLogoutHandler keycloakLogoutHandler,
-                         ClientRegistrationRepository clientRegistrationRepository) {
+                         ClientRegistrationRepository clientRegistrationRepository,
+                         StudentAuthenticationProvider studentAuthenticationProvider) {
         this.userDetailsService = userDetailsService;
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
         this.keycloakOidcSuccessHandler = keycloakOidcSuccessHandler;
         this.keycloakLogoutHandler = keycloakLogoutHandler;
         this.clientRegistrationRepository = clientRegistrationRepository;
+        this.studentAuthenticationProvider = studentAuthenticationProvider;
     }
 
     @Bean
@@ -156,6 +162,18 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+        // Build a ProviderManager with:
+        // 1. DaoAuthenticationProvider (user table lookup - admin/existing users)
+        // 2. StudentAuthenticationProvider (studdb lookup - student Reg_No + NIC)
+        // This mirrors the PHP 3-tier login flow in logincheck.php
+        DaoAuthenticationProvider daoProvider = new DaoAuthenticationProvider();
+        daoProvider.setUserDetailsService(userDetailsService);
+        daoProvider.setPasswordEncoder(passwordEncoder());
+        daoProvider.setHideUserNotFoundExceptions(true);
+
+        return new ProviderManager(java.util.List.of(
+                daoProvider,
+                studentAuthenticationProvider
+        ));
     }
 }

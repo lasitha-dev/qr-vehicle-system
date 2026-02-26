@@ -32,25 +32,33 @@ public class StudentService {
 
     /**
      * Get comprehensive student details by registration number.
-     * Mirrors PHP: SELECT * FROM stud, studbasic, faculty, course, district, studother
+     * Mirrors PHP view.php: SELECT * FROM stud, studbasic, faculty, course, district, studother
      * WHERE stud.NIC=studbasic.NIC AND stud.Faculty=faculty.Fac_Code 
      * AND stud.Course=course.course_ID AND studother.Dist_No=district.Dist_No 
      * AND stud.NIC=studother.NIC AND Reg_No=?
+     *
+     * Column mapping matched to real studdb schema (studdb (7).sql):
+     *   studbasic: RegOn, SelectType, ADD1/ADD2/ADD3, Phone_No
+     *   studother: DOB, Religion, Ethic, Z_Score, Home, Mobile, Email,
+     *              PName, PAdd, PTelNo, EName, ETelNo, Div_No, Police
+     *   district:  District (not Dist_Name)
      */
     public Optional<StudentDetailDTO> getStudentDetail(String regNo) {
         try {
             String sql = """
                 SELECT 
-                    s.Reg_No, s.App_Year, s.Faculty, s.Course, s.Status, s.RegOn, s.SelectType, s.NIC,
-                    sb.Title, sb.Initials, sb.L_Name, sb.Full_Name, sb.Gender, sb.DOB, 
-                    sb.Religion, sb.Ethnicity, sb.AL_Stream, sb.AL_Dist, sb.ZScore, sb.AL_Year,
+                    s.Reg_No, s.App_Year, s.Faculty, s.Course, s.Status, s.NIC,
+                    sb.Title, sb.Initials, sb.L_Name, sb.Full_Name, sb.Gender,
+                    sb.SelectType, sb.RegOn, sb.Phone_No,
+                    sb.ADD1, sb.ADD2, sb.ADD3,
                     f.Fac_name AS FacultyName,
                     c.Course_name AS CourseName,
-                    d.Dist_Name AS DistrictName,
-                    so.ADD1, so.ADD2, so.ADD3, so.Dist_No, so.Div_No, so.Police,
-                    so.Phone, so.Mobile, so.Email,
-                    so.Father_Name, so.Mother_Name, so.Guardian_Name, so.Guardian_Add, so.Guardian_Phone,
-                    so.Emergency_Name, so.Emergency_Phone
+                    d.District AS DistrictName,
+                    so.DOB, so.Religion, so.Ethic, so.Z_Score,
+                    so.Dist_No, so.Div_No, so.Police,
+                    so.Home, so.Mobile, so.Email,
+                    so.PName, so.PAdd, so.PTelNo, so.PRelationship,
+                    so.EName, so.ETelNo, so.ERelationship
                 FROM stud s
                 LEFT JOIN studbasic sb ON s.NIC = sb.NIC
                 LEFT JOIN faculty f ON s.Faculty = f.Fac_Code
@@ -68,54 +76,53 @@ public class StudentService {
                 student.setFaculty(rs.getString("Faculty"));
                 student.setCourse(rs.getString("Course"));
                 student.setStatus(rs.getString("Status"));
+                student.setNic(rs.getString("NIC"));
                 student.setRegisteredOn(rs.getString("RegOn"));
                 student.setSelectType(rs.getString("SelectType"));
-                student.setNic(rs.getString("NIC"));
 
                 student.setTitle(rs.getString("Title"));
                 student.setInitials(rs.getString("Initials"));
                 student.setLastName(rs.getString("L_Name"));
                 student.setFullName(rs.getString("Full_Name"));
                 student.setGender(rs.getString("Gender"));
+
+                // DOB, Religion, Ethic, Z_Score are in studother
                 student.setDateOfBirth(rs.getString("DOB"));
                 student.setReligion(rs.getString("Religion"));
-                student.setEthnicity(rs.getString("Ethnicity"));
-                student.setAlStream(rs.getString("AL_Stream"));
-                student.setAlDistrict(rs.getString("AL_Dist"));
-                student.setZScore(rs.getString("ZScore"));
-                student.setAlYear(rs.getString("AL_Year"));
+                student.setEthnicity(rs.getString("Ethic"));
+                student.setZScore(rs.getString("Z_Score"));
 
                 student.setFacultyName(rs.getString("FacultyName"));
                 student.setCourseName(rs.getString("CourseName"));
                 student.setDistrict(rs.getString("DistrictName"));
 
+                // Address from studbasic (permanent address)
                 student.setAddress1(rs.getString("ADD1"));
                 student.setAddress2(rs.getString("ADD2"));
                 student.setAddress3(rs.getString("ADD3"));
                 student.setPoliceStation(rs.getString("Police"));
 
-                student.setPhone(rs.getString("Phone"));
+                // Contact: Home phone from studother, Mobile from studother, Email from studother
+                student.setPhone(rs.getString("Home"));
                 student.setMobile(rs.getString("Mobile"));
                 student.setEmail(rs.getString("Email"));
 
-                student.setFatherName(rs.getString("Father_Name"));
-                student.setMotherName(rs.getString("Mother_Name"));
-                student.setGuardianName(rs.getString("Guardian_Name"));
-                student.setGuardianAddress(rs.getString("Guardian_Add"));
-                student.setGuardianPhone(rs.getString("Guardian_Phone"));
+                // Parent/Guardian from studother (PName, PAdd, PTelNo)
+                student.setFatherName(rs.getString("PName"));
+                student.setGuardianName(rs.getString("PName"));
+                student.setGuardianAddress(rs.getString("PAdd"));
+                student.setGuardianPhone(rs.getString("PTelNo"));
 
-                student.setEmergencyContactName(rs.getString("Emergency_Name"));
-                student.setEmergencyContactPhone(rs.getString("Emergency_Phone"));
+                // Emergency contact from studother (EName, ETelNo)
+                student.setEmergencyContactName(rs.getString("EName"));
+                student.setEmergencyContactPhone(rs.getString("ETelNo"));
 
                 return student;
             }, regNo);
 
             if (dto != null) {
-                // Fetch semester info
                 loadSemesterInfo(dto);
-                // Fetch academic history
                 loadAcademicHistory(dto);
-                // Build image URL
                 dto.setImageUrl(buildStudentImageUrl(dto.getRegNo()));
             }
 
@@ -216,11 +223,9 @@ public class StudentService {
 
     /**
      * Check if a registration number belongs to a registered student.
+     * Mirrors PHP: SELECT * FROM stud WHERE Reg_No=? AND Status='REGISTERED'
      */
     public boolean isRegisteredStudent(String regNo) {
-        if ("M/24/001".equalsIgnoreCase(regNo)) {
-            return true;
-        }
         try {
             Integer count = studDbJdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM stud WHERE Reg_No = ? AND Status = 'REGISTERED'",
@@ -228,32 +233,21 @@ public class StudentService {
             );
             return count != null && count > 0;
         } catch (Exception e) {
+            log.warn("Error checking student registration for {}: {}", regNo, e.getMessage());
             return false;
         }
     }
 
     /**
      * Get basic student info for vehicle registration self-service.
-     * Mirrors PHP insert_vehiclemod.php student lookup.
+     * Mirrors PHP: SELECT s.Reg_No, sb.Full_Name, f.Fac_name, c.Course_name
+     *              FROM stud s JOIN studbasic sb ... WHERE s.Reg_No=? AND s.Status='REGISTERED'
      */
     public Optional<StudentDetailDTO> getStudentBasicInfo(String regNo) {
-        if ("M/24/001".equalsIgnoreCase(regNo)) {
-            StudentDetailDTO mock = new StudentDetailDTO();
-            mock.setRegNo("M/24/001");
-            mock.setFullName("Test Student");
-            mock.setAppYear("2024");
-            mock.setFaculty("M");
-            mock.setCourse("1");
-            mock.setFacultyName("Medicine");
-            mock.setCourseName("MBBS");
-            mock.setGender("M");
-            mock.setImageUrl("/images/user.png");
-            return Optional.of(mock);
-        }
         try {
             String sql = """
                 SELECT 
-                    s.Reg_No, sb.Full_Name, s.App_Year, 
+                    s.Reg_No, s.NIC, sb.Full_Name, s.App_Year, 
                     s.Faculty, s.Course,
                     COALESCE(f.Fac_name, s.Faculty) AS FacultyName,
                     COALESCE(c.Course_name, s.Course) AS CourseName,
@@ -269,6 +263,7 @@ public class StudentService {
             StudentDetailDTO dto = studDbJdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
                 StudentDetailDTO student = new StudentDetailDTO();
                 student.setRegNo(rs.getString("Reg_No"));
+                student.setNic(rs.getString("NIC"));
                 student.setFullName(rs.getString("Full_Name"));
                 student.setAppYear(rs.getString("App_Year"));
                 student.setFaculty(rs.getString("Faculty"));
@@ -292,12 +287,46 @@ public class StudentService {
         }
     }
 
+    /**
+     * Get distinct faculty prefixes from registered students.
+     * Mirrors PHP: SELECT DISTINCT SUBSTRING_INDEX(Reg_No,'/',1) AS faculty_prefix
+     *              FROM stud WHERE Status='REGISTERED' ORDER BY faculty_prefix
+     */
     public List<String> getDistinctFaculties() {
-        return Arrays.asList("A", "AG", "AHS", "D", "E", "M", "MG", "S", "VS");
+        try {
+            return studDbJdbcTemplate.query(
+                "SELECT DISTINCT SUBSTRING_INDEX(Reg_No,'/',1) AS faculty_prefix FROM stud WHERE Status='REGISTERED' ORDER BY faculty_prefix",
+                (rs, rowNum) -> rs.getString("faculty_prefix")
+            );
+        } catch (Exception e) {
+            log.error("Error fetching distinct faculties: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 
+    /**
+     * Get distinct academic years for a given faculty prefix.
+     * Mirrors PHP: SELECT DISTINCT CASE WHEN LENGTH(...)=2 THEN CONCAT('20',...) ELSE ... END AS YearFull
+     *              FROM stud WHERE Status='REGISTERED' AND Reg_No LIKE '{faculty}/%' ORDER BY YearFull
+     */
     public List<String> getYearsByFaculty(String faculty) {
-        return Arrays.asList("2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024");
+        try {
+            String sql = """
+                SELECT DISTINCT
+                    CASE
+                        WHEN LENGTH(SUBSTRING_INDEX(SUBSTRING_INDEX(Reg_No,'/',2),'/',-1)) = 2
+                            THEN CONCAT('20', SUBSTRING_INDEX(SUBSTRING_INDEX(Reg_No,'/',2),'/',-1))
+                        ELSE SUBSTRING_INDEX(SUBSTRING_INDEX(Reg_No,'/',2),'/',-1)
+                    END AS YearFull
+                FROM stud
+                WHERE Status='REGISTERED' AND Reg_No LIKE CONCAT(?,'/%')
+                ORDER BY YearFull ASC
+                """;
+            return studDbJdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("YearFull"), faculty);
+        } catch (Exception e) {
+            log.error("Error fetching years for faculty={}: {}", faculty, e.getMessage(), e);
+            return Collections.emptyList();
+        }
     }
 
     public List<PersonDropdownItem> getStudentsByFacultyAndYear(String faculty, String year) {
@@ -331,13 +360,6 @@ public class StudentService {
             items = new ArrayList<>();
         }
 
-        // Inject test student M/24/001 if faculty is M and year is 2024
-        if ("M".equalsIgnoreCase(faculty) && "2024".equals(year)) {
-            boolean exists = items.stream().anyMatch(item -> "M/24/001".equalsIgnoreCase(item.getId()));
-            if (!exists) {
-                items.add(new PersonDropdownItem("M/24/001", "M/24/001 - Test Student"));
-            }
-        }
         return items;
     }
 
