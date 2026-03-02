@@ -203,11 +203,16 @@ public class SelfServiceVehicleController {
             if (request.getServerPort() != 80 && request.getServerPort() != 443) {
                 baseUrl += ":" + request.getServerPort();
             }
-            emailService.sendVehicleRegistrationConfirmation(email, personName, userId,
+            boolean emailSent = emailService.sendVehicleRegistrationConfirmation(email, personName, userId,
                                                               vehicleNo, type, baseUrl);
 
-            redirectAttributes.addFlashAttribute("success",
-                "Vehicle " + vehicleNo + " registered successfully! A confirmation email has been sent to " + email);
+            if (emailSent) {
+                redirectAttributes.addFlashAttribute("success",
+                    "Vehicle " + vehicleNo + " registered successfully! A confirmation email has been sent to " + email);
+            } else {
+                redirectAttributes.addFlashAttribute("success",
+                    "Vehicle " + vehicleNo + " registered successfully! (Email notification could not be sent)");
+            }
 
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

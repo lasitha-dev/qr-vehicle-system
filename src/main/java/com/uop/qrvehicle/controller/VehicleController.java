@@ -3,6 +3,8 @@ package com.uop.qrvehicle.controller;
 import com.uop.qrvehicle.model.Vehicle;
 import com.uop.qrvehicle.security.CustomUserDetails;
 import com.uop.qrvehicle.service.CertificateService;
+import com.uop.qrvehicle.service.EmailService;
+import com.uop.qrvehicle.service.StudentService;
 import com.uop.qrvehicle.service.VehicleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +18,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Vehicle Controller
- * Handles vehicle registration, search, and management
+ * Handles vehicle registration, search, and management.
+ * Admin actions (approve/reject/update/delete/certificate-delete) now trigger
+ * email notifications to the vehicle owner (and student master email when applicable).
  */
 @Controller
 @RequestMapping("/vehicle")
@@ -29,11 +34,17 @@ public class VehicleController {
 
     private final VehicleService vehicleService;
     private final CertificateService certificateService;
+    private final EmailService emailService;
+    private final StudentService studentService;
 
-    public VehicleController(VehicleService vehicleService, 
-                            CertificateService certificateService) {
+    public VehicleController(VehicleService vehicleService,
+                            CertificateService certificateService,
+                            EmailService emailService,
+                            StudentService studentService) {
         this.vehicleService = vehicleService;
         this.certificateService = certificateService;
+        this.emailService = emailService;
+        this.studentService = studentService;
     }
 
     /**
@@ -149,7 +160,7 @@ public class VehicleController {
             String username = getUsername(authentication);
             
             // Update vehicle
-            vehicleService.updateVehicle(id, oldVehicleNo, vehicleNo, owner, 
+            Vehicle updatedVehicle = vehicleService.updateVehicle(id, oldVehicleNo, vehicleNo, owner, 
                                         approvalStatus, vehicleTypeId, mobile, email, username);
             
             // Rename existing certificate files if vehicle number changed
@@ -166,8 +177,23 @@ public class VehicleController {
             if (certificate != null && !certificate.isEmpty()) {
                 certificateService.uploadCertificate(certificate, category, id, vehicleNo);
             }
-            
-            redirectAttributes.addFlashAttribute("success", "Vehicle updated successfully!");
+
+            // Send update notification email
+            List<String> recipients = emailService.resolveRecipientEmails(updatedVehicle, studentService);
+            if (!recipients.isEmpty()) {
+                String certUrl = buildCertificateUrl(category, id);
+                boolean emailSent = emailService.sendVehicleUpdatedNotification(
+                        recipients, updatedVehicle.getOwner(), vehicleNo,
+                        updatedVehicle.getType(), updatedVehicle.getMobile(),
+                        updatedVehicle.getApprovalStatus(), certUrl);
+                redirectAttributes.addFlashAttribute("success",
+                        "Vehicle updated successfully!" + (emailSent 
+                            ? " Notification sent to " + String.join(", ", recipients) + "."
+                            : " (Email notification failed)"));
+            } else {
+                redirectAttributes.addFlashAttribute("success",
+                        "Vehicle updated successfully! (No email on file)");
+            }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
@@ -190,8 +216,29 @@ public class VehicleController {
                                @RequestParam(required = false) String status,
                                RedirectAttributes redirectAttributes) {
         try {
+            // Fetch vehicle before deletion to capture owner/email/type for notification
+            Optional<Vehicle> vehicleOpt = vehicleService.getVehicle(id, vehicleNo);
+            
             vehicleService.deleteVehicle(id, vehicleNo);
-            redirectAttributes.addFlashAttribute("success", "Vehicle deleted successfully!");
+
+            // Send deletion notification email
+            if (vehicleOpt.isPresent()) {
+                Vehicle vehicle = vehicleOpt.get();
+                List<String> recipients = emailService.resolveRecipientEmails(vehicle, studentService);
+                if (!recipients.isEmpty()) {
+                    boolean emailSent = emailService.sendVehicleDeletedNotification(
+                            recipients, vehicle.getOwner(), vehicleNo, vehicle.getType());
+                    redirectAttributes.addFlashAttribute("success",
+                            "Vehicle deleted successfully!" + (emailSent
+                                ? " Notification sent to " + String.join(", ", recipients) + "."
+                                : " (Email notification failed)"));
+                } else {
+                    redirectAttributes.addFlashAttribute("success",
+                            "Vehicle deleted successfully! (No email on file)");
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("success", "Vehicle deleted successfully!");
+            }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
@@ -245,8 +292,21 @@ public class VehicleController {
                                 @RequestParam String vehicleNo,
                                 RedirectAttributes redirectAttributes) {
         try {
-            vehicleService.approveVehicle(empId, vehicleNo);
-            redirectAttributes.addFlashAttribute("success", "Vehicle approved!");
+            Vehicle vehicle = vehicleService.approveVehicle(empId, vehicleNo);
+
+            // Send approval notification email
+            List<String> recipients = emailService.resolveRecipientEmails(vehicle, studentService);
+            if (!recipients.isEmpty()) {
+                boolean emailSent = emailService.sendApprovalNotification(
+                        recipients, vehicle.getOwner(), vehicleNo,
+                        vehicle.getType(), vehicle.getMobile(), "Approved");
+                redirectAttributes.addFlashAttribute("success",
+                        "Vehicle approved!" + (emailSent
+                            ? " Notification sent to " + String.join(", ", recipients) + "."
+                            : " (Email notification failed)"));
+            } else {
+                redirectAttributes.addFlashAttribute("success", "Vehicle approved! (No email on file)");
+            }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
@@ -262,8 +322,21 @@ public class VehicleController {
                                @RequestParam String vehicleNo,
                                RedirectAttributes redirectAttributes) {
         try {
-            vehicleService.rejectVehicle(empId, vehicleNo);
-            redirectAttributes.addFlashAttribute("success", "Vehicle rejected!");
+            Vehicle vehicle = vehicleService.rejectVehicle(empId, vehicleNo);
+
+            // Send rejection notification email
+            List<String> recipients = emailService.resolveRecipientEmails(vehicle, studentService);
+            if (!recipients.isEmpty()) {
+                boolean emailSent = emailService.sendApprovalNotification(
+                        recipients, vehicle.getOwner(), vehicleNo,
+                        vehicle.getType(), vehicle.getMobile(), "Rejected");
+                redirectAttributes.addFlashAttribute("success",
+                        "Vehicle rejected!" + (emailSent
+                            ? " Notification sent to " + String.join(", ", recipients) + "."
+                            : " (Email notification failed)"));
+            } else {
+                redirectAttributes.addFlashAttribute("success", "Vehicle rejected! (No email on file)");
+            }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
@@ -292,7 +365,13 @@ public class VehicleController {
         try {
             boolean deleted = certificateService.deleteCertificate(category, id, filename);
             if (deleted) {
-                redirectAttributes.addFlashAttribute("success", "Certificate deleted: " + filename);
+                // Send certificate deleted notification email
+                // Extract vehicle number from filename or find from existing vehicles
+                sendCertificateDeletedEmail(category, id, filename, redirectAttributes);
+                // Only set success if not already set by the email helper
+                if (!redirectAttributes.getFlashAttributes().containsKey("success")) {
+                    redirectAttributes.addFlashAttribute("success", "Certificate deleted: " + filename);
+                }
             } else {
                 redirectAttributes.addFlashAttribute("error", "Certificate not found: " + filename);
             }
@@ -321,6 +400,69 @@ public class VehicleController {
             case "institute": return "Institute";
             case "visitor": return "Visitor";
             default: return category;
+        }
+    }
+
+    /**
+     * Build the certificate download base URL for a given category and person ID.
+     */
+    private String buildCertificateUrl(String category, String id) {
+        if ("student".equalsIgnoreCase(category) && id != null) {
+            String[] regParts = id.split("/");
+            String prefix = regParts.length > 0 ? regParts[0] : "S";
+            String yearPart = regParts.length > 1 ? regParts[1] : "00";
+            String year = yearPart.length() == 2 ? "20" + yearPart : yearPart;
+            return "/uploads/certificates/Student/" + prefix + "/" + year;
+        }
+        return "/uploads/certificates/" + (category != null ? category : "Other");
+    }
+
+    /**
+     * Find the vehicle associated with a certificate filename and send notification.
+     * Looks up all vehicles for the given person ID and tries to match
+     * the filename to a vehicle number. Falls back to using first vehicle if needed.
+     */
+    private void sendCertificateDeletedEmail(String category, String id, String filename,
+                                              RedirectAttributes redirectAttributes) {
+        try {
+            List<Vehicle> vehicles = vehicleService.getVehiclesByEmpId(id);
+            if (vehicles.isEmpty()) {
+                redirectAttributes.addFlashAttribute("success",
+                        "Certificate deleted: " + filename + " (No vehicle found for notification)");
+                return;
+            }
+
+            // Try to match the filename to a vehicle number
+            // Certificate naming convention: vehicleNo_timestamp.ext or similar
+            Vehicle matchedVehicle = null;
+            for (Vehicle v : vehicles) {
+                if (filename.contains(v.getVehicleNo().replace("/", "_"))
+                        || filename.contains(v.getVehicleNo())) {
+                    matchedVehicle = v;
+                    break;
+                }
+            }
+            // Fallback to first vehicle if no filename match
+            if (matchedVehicle == null) {
+                matchedVehicle = vehicles.get(0);
+            }
+
+            List<String> recipients = emailService.resolveRecipientEmails(matchedVehicle, studentService);
+            if (!recipients.isEmpty()) {
+                boolean emailSent = emailService.sendCertificateDeletedNotification(
+                        recipients, matchedVehicle.getOwner(), matchedVehicle.getVehicleNo(),
+                        matchedVehicle.getType(), filename);
+                redirectAttributes.addFlashAttribute("success",
+                        "Certificate deleted: " + filename + (emailSent
+                            ? " Notification sent to " + String.join(", ", recipients) + "."
+                            : " (Email notification failed)"));
+            } else {
+                redirectAttributes.addFlashAttribute("success",
+                        "Certificate deleted: " + filename + " (No email on file)");
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send certificate deleted notification for {}: {}", filename, e.getMessage());
+            redirectAttributes.addFlashAttribute("success", "Certificate deleted: " + filename);
         }
     }
 }
