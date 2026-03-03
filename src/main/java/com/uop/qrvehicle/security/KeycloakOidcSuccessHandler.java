@@ -85,8 +85,8 @@ public class KeycloakOidcSuccessHandler implements AuthenticationSuccessHandler 
         String username = uid != null ? uid : email;
         String displayName = nameWithInitials != null ? nameWithInitials : name;
 
-        // Find or create user
-        User user = userRepository.findByUsername(username)
+        // Find or create user (lookup by username + userType since composite key)
+        User user = userRepository.findByUsernameAndUserType(username, "GoogleUser")
             .orElseGet(() -> {
                 User newUser = new User();
                 newUser.setUsername(username);

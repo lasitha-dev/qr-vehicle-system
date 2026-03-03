@@ -10,10 +10,16 @@ import java.time.LocalDateTime;
 /**
  * User Entity - Maps to the 'user' table
  * Stores system users for authentication
- * Primary key: username (varchar)
+ * Composite primary key: (username, utype)
+ * 
+ * This allows the same username (e.g., "gsd") to have multiple rows
+ * with different userType values. Different people use different passwords
+ * to log in under the same username — the password identifies the person.
+ * This mirrors the PHP logincheck.php behavior.
  */
 @Entity
 @Table(name = "user")
+@IdClass(UserId.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,6 +35,7 @@ public class User {
     @Column(name = "FullName")
     private String fullName;
 
+    @Id
     @Column(name = "utype")
     private String userType; // admin, entry, viewer, searcher, certifier, GoogleUser
 

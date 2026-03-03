@@ -56,8 +56,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
-        // Find or create user
-        User user = userRepository.findByUsername(email)
+        // Find or create user (lookup by username + userType since composite key)
+        User user = userRepository.findByUsernameAndUserType(email, "GoogleUser")
             .orElseGet(() -> {
                 User newUser = new User();
                 newUser.setUsername(email);

@@ -99,7 +99,7 @@ public class StudentAuthenticationProvider implements AuthenticationProvider {
             // Mirrors PHP: INSERT INTO user (username, password, utype, FullName, Create-Date, LastLogin)
             //              VALUES (?, ?, 'entry', ?, CURDATE(), NOW())
             //              or UPDATE user SET password=?, FullName=?, LastLogin=NOW() WHERE username=?
-            User user = userRepository.findByUsername(regNo).orElse(null);
+            User user = userRepository.findByUsernameAndUserType(regNo, "entry").orElse(null);
             if (user == null) {
                 user = new User();
                 user.setUsername(regNo);

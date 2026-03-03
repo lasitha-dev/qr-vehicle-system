@@ -24,13 +24,22 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException(
-                "User not found with username: " + username
-            ));
+        // findByUsername returns a List since the same username can have multiple rows
+        // (different people using different passwords under the same username).
+        // This service is a fallback — main form login uses UserTableAuthenticationProvider.
+        java.util.List<User> users = userRepository.findByUsername(username);
 
-        // Update last login
-        userRepository.updateLastLogin(username);
+        if (users.isEmpty()) {
+            throw new UsernameNotFoundException(
+                "User not found with username: " + username
+            );
+        }
+
+        // Take the first match (this service is not the primary auth path)
+        User user = users.get(0);
+
+        // Update last login for this specific user (by composite key)
+        userRepository.updateLastLogin(user.getUsername(), user.getUserType());
 
         return new CustomUserDetails(user);
     }
