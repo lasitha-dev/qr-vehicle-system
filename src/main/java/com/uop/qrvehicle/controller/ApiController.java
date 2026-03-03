@@ -431,8 +431,9 @@ public class ApiController {
 
         List<PersonDropdownItem> items;
         String userType = resolveUserType(authentication);
+        String username = resolveUsername(authentication);
 
-        if (!personService.isCategoryAllowedForUserType(category, userType)) {
+        if (!personService.isCategoryAllowedForUserType(category, userType, username)) {
             return ResponseEntity.ok(List.of());
         }
 
@@ -492,6 +493,17 @@ public class ApiController {
             return customUserDetails.getUserType();
         }
         return "";
+    }
+
+    private String resolveUsername(Authentication authentication) {
+        if (authentication == null) {
+            return "";
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getUsername();
+        }
+        return authentication.getName();
     }
 
     // =========================================================================

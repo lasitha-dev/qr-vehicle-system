@@ -75,13 +75,20 @@
                 <label>Choose a Category:</label>
                 <select id="categorySelect" class="form-control" required>
                     <option value="">-- Select --</option>
-                    <option value="student" th:selected="${category == 'student'}">Student</option>
-                    <option value="permanent" th:selected="${category == 'permanent'}">Permanent Staff</option>
-                    <option value="temporary" th:selected="${category == 'temporary'}">Temporary Staff</option>
-                    <option value="casual" th:selected="${category == 'casual'}">Casual Staff</option>
-                    <option value="contract" th:selected="${category == 'contract'}">Contract Staff</option>
-                    <option value="institute" th:selected="${category == 'institute'}">Institute Staff</option>
-                    <option value="visitor" th:selected="${category == 'visitor'}">Visitor</option>
+                    <option value="student" th:selected="${category == 'student'}"
+                            th:if="${allowedCategories == null or allowedCategories.contains('student')}">Student</option>
+                    <option value="permanent" th:selected="${category == 'permanent'}"
+                            th:if="${allowedCategories == null or allowedCategories.contains('permanent')}">Permanent Staff</option>
+                    <option value="temporary" th:selected="${category == 'temporary'}"
+                            th:if="${allowedCategories == null or allowedCategories.contains('temporary')}">Temporary Staff</option>
+                    <option value="casual" th:selected="${category == 'casual'}"
+                            th:if="${allowedCategories == null or allowedCategories.contains('casual')}">Casual Staff</option>
+                    <option value="contract" th:selected="${category == 'contract'}"
+                            th:if="${allowedCategories == null or allowedCategories.contains('contract')}">Contract Staff</option>
+                    <option value="institute" th:selected="${category == 'institute'}"
+                            th:if="${allowedCategories == null or allowedCategories.contains('institute')}">Institute Staff</option>
+                    <option value="visitor" th:selected="${category == 'visitor'}"
+                            th:if="${allowedCategories == null or allowedCategories.contains('visitor')}">Visitor</option>
                 </select>
             </div>
 

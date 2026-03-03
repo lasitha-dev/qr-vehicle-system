@@ -19,6 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Vehicle Controller
@@ -51,13 +52,29 @@ public class VehicleController {
      * Vehicle insert form
      */
     @GetMapping("/insert")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'CERTIFIER')")
     public String insertForm(@RequestParam(required = false) String category,
                             @RequestParam(required = false) String id,
                             @RequestParam(required = false) String status,
+                            Authentication authentication,
                             Model model) {
         try {
             log.debug("insertForm called: category={}, id={}, status={}", category, id, status);
+
+            // Enforce certifier category restriction
+            if (isCertifier(authentication) && category != null && !category.isEmpty()) {
+                if (!isCertifierAllowedCategory(authentication, category)) {
+                    model.addAttribute("error", "You are not authorized to manage this category.");
+                    model.addAttribute("allowedCategories", getAllowedCategoriesForCertifier(getUsername(authentication)));
+                    model.addAttribute("vehicleTypes", vehicleService.getActiveVehicleTypes());
+                    return "vehicle/insert";
+                }
+            }
+
+            // Pass allowed categories for certifiers (used by template to filter dropdown)
+            if (isCertifier(authentication)) {
+                model.addAttribute("allowedCategories", getAllowedCategoriesForCertifier(getUsername(authentication)));
+            }
             
             model.addAttribute("category", category);
             model.addAttribute("selectedId", id);
@@ -102,7 +119,7 @@ public class VehicleController {
      * Add new vehicle
      */
     @PostMapping("/add")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'CERTIFIER')")
     public String addVehicle(@RequestParam String category,
                             @RequestParam String id,
                             @RequestParam String vehicleNo,
@@ -115,6 +132,12 @@ public class VehicleController {
                             Authentication authentication,
                             RedirectAttributes redirectAttributes) {
         try {
+            // Enforce certifier category restriction
+            if (isCertifier(authentication) && !isCertifierAllowedCategory(authentication, category)) {
+                redirectAttributes.addFlashAttribute("error", "You are not authorized to manage this category.");
+                return "redirect:/vehicle/insert";
+            }
+
             String username = getUsername(authentication);
             String type = mapCategoryToType(category);
             
@@ -142,7 +165,7 @@ public class VehicleController {
      * Update vehicle
      */
     @PostMapping("/update")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CERTIFIER')")
     public String updateVehicle(@RequestParam String category,
                                @RequestParam String id,
                                @RequestParam String oldVehicleNo,
@@ -157,6 +180,12 @@ public class VehicleController {
                                Authentication authentication,
                                RedirectAttributes redirectAttributes) {
         try {
+            // Enforce certifier category restriction
+            if (isCertifier(authentication) && !isCertifierAllowedCategory(authentication, category)) {
+                redirectAttributes.addFlashAttribute("error", "You are not authorized to manage this category.");
+                return "redirect:/vehicle/insert";
+            }
+
             String username = getUsername(authentication);
             
             // Update vehicle
@@ -276,9 +305,21 @@ public class VehicleController {
      * Pending vehicles for approval
      */
     @GetMapping("/pending")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String pendingVehicles(Model model) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'CERTIFIER')")
+    public String pendingVehicles(Authentication authentication, Model model) {
         List<Vehicle> pendingVehicles = vehicleService.getPendingVehicles();
+
+        // Filter pending vehicles by certifier's allowed categories
+        if (isCertifier(authentication)) {
+            Set<String> allowedCats = getAllowedCategoriesForCertifier(getUsername(authentication));
+            pendingVehicles = pendingVehicles.stream()
+                    .filter(v -> {
+                        String vType = v.getType() != null ? v.getType().toLowerCase() : "";
+                        return allowedCats.stream().anyMatch(c -> c.equalsIgnoreCase(vType));
+                    })
+                    .toList();
+        }
+
         model.addAttribute("vehicles", pendingVehicles);
         return "vehicle/pending";
     }
@@ -287,11 +328,22 @@ public class VehicleController {
      * Approve vehicle using composite key (empId and vehicleNo)
      */
     @PostMapping("/approve")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CERTIFIER')")
     public String approveVehicle(@RequestParam String empId, 
                                 @RequestParam String vehicleNo,
+                                Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
         try {
+            // Enforce certifier category restriction
+            Optional<Vehicle> existing = vehicleService.getVehicle(empId, vehicleNo);
+            if (isCertifier(authentication) && existing.isPresent()) {
+                String vType = existing.get().getType();
+                if (!isCertifierAllowedType(authentication, vType)) {
+                    redirectAttributes.addFlashAttribute("error", "You are not authorized to approve this vehicle category.");
+                    return "redirect:/vehicle/pending";
+                }
+            }
+
             Vehicle vehicle = vehicleService.approveVehicle(empId, vehicleNo);
 
             // Send approval notification email
@@ -317,11 +369,22 @@ public class VehicleController {
      * Reject vehicle using composite key (empId and vehicleNo)
      */
     @PostMapping("/reject")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CERTIFIER')")
     public String rejectVehicle(@RequestParam String empId,
                                @RequestParam String vehicleNo,
+                               Authentication authentication,
                                RedirectAttributes redirectAttributes) {
         try {
+            // Enforce certifier category restriction
+            Optional<Vehicle> existing = vehicleService.getVehicle(empId, vehicleNo);
+            if (isCertifier(authentication) && existing.isPresent()) {
+                String vType = existing.get().getType();
+                if (!isCertifierAllowedType(authentication, vType)) {
+                    redirectAttributes.addFlashAttribute("error", "You are not authorized to reject this vehicle category.");
+                    return "redirect:/vehicle/pending";
+                }
+            }
+
             Vehicle vehicle = vehicleService.rejectVehicle(empId, vehicleNo);
 
             // Send rejection notification email
@@ -355,14 +418,21 @@ public class VehicleController {
      * Migrated from: delete_certificate.php
      */
     @PostMapping("/certificate/delete")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CERTIFIER')")
     public String deleteCertificate(@RequestParam String category,
                                      @RequestParam String id,
                                      @RequestParam String filename,
                                      @RequestParam(required = false) String returnUrl,
                                      @RequestParam(required = false) String status,
+                                     Authentication authentication,
                                      RedirectAttributes redirectAttributes) {
         try {
+            // Enforce certifier category restriction
+            if (isCertifier(authentication) && !isCertifierAllowedCategory(authentication, category)) {
+                redirectAttributes.addFlashAttribute("error", "You are not authorized to delete certificates in this category.");
+                return "redirect:/vehicle/insert";
+            }
+
             boolean deleted = certificateService.deleteCertificate(category, id, filename);
             if (deleted) {
                 // Send certificate deleted notification email
@@ -464,5 +534,64 @@ public class VehicleController {
             log.warn("Failed to send certificate deleted notification for {}: {}", filename, e.getMessage());
             redirectAttributes.addFlashAttribute("success", "Certificate deleted: " + filename);
         }
+    }
+
+    // =========================================================================
+    // CERTIFIER ROLE HELPERS
+    // Mirrors PHP: gsd → permanent, studservices → student
+    // =========================================================================
+
+    /**
+     * Get the set of allowed categories for a certifier based on their username.
+     * Mirrors PHP insert_vehicle.php hardcoded mapping.
+     */
+    private Set<String> getAllowedCategoriesForCertifier(String username) {
+        if (username == null) return Set.of();
+        switch (username.toLowerCase()) {
+            case "gsd":
+                return Set.of("permanent");
+            case "studservices":
+                return Set.of("student");
+            default:
+                return Set.of();
+        }
+    }
+
+    /**
+     * Check if the current user is a certifier.
+     */
+    private boolean isCertifier(Authentication authentication) {
+        if (authentication == null) return false;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            String userType = ((CustomUserDetails) principal).getUserType();
+            return "certifier".equalsIgnoreCase(userType);
+        }
+        return false;
+    }
+
+    /**
+     * Check if a certifier is allowed to manage the given category.
+     * Returns true for non-certifiers (no restriction).
+     */
+    private boolean isCertifierAllowedCategory(Authentication authentication, String category) {
+        if (!isCertifier(authentication)) return true;
+        if (category == null || category.isBlank()) return true;
+        String username = getUsername(authentication);
+        Set<String> allowed = getAllowedCategoriesForCertifier(username);
+        return allowed.isEmpty() || allowed.contains(category.toLowerCase());
+    }
+
+    /**
+     * Check if a certifier is allowed to manage a vehicle by its type (DB value like "Permanent", "Student").
+     * Returns true for non-certifiers.
+     */
+    private boolean isCertifierAllowedType(Authentication authentication, String vehicleType) {
+        if (!isCertifier(authentication)) return true;
+        if (vehicleType == null || vehicleType.isBlank()) return true;
+        String username = getUsername(authentication);
+        Set<String> allowed = getAllowedCategoriesForCertifier(username);
+        // Map DB type back to category for comparison
+        return allowed.stream().anyMatch(cat -> mapCategoryToType(cat).equalsIgnoreCase(vehicleType));
     }
 }

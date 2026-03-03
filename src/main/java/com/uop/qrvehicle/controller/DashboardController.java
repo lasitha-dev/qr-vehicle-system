@@ -90,6 +90,10 @@ public class DashboardController {
             case "searcher":
                 tasks.add(new TaskDTO("Searcher / Search Vehicle", "/vehicle/search", "🚗🔍", "#6f42c1"));
                 break;
+
+            case "certifier":
+                tasks.add(new TaskDTO("Certifier / Insert New Vehicle", "/vehicle/insert", "🚗", "#f0ad4e"));
+                break;
                 
             case "student":
             case "googleuser":

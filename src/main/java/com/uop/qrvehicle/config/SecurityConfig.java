@@ -61,25 +61,26 @@ public class SecurityConfig {
                 // Public resources
                 .requestMatchers("/", "/login", "/error", "/error/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER", "STUDENT", "USER", "GOOGLEUSER")
+                .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER", "CERTIFIER", "STUDENT", "USER", "GOOGLEUSER")
 
                 // Admin-only routes
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/qr/**").hasRole("ADMIN")
-                .requestMatchers("/vehicle/pending", "/vehicle/approve", "/vehicle/reject").hasRole("ADMIN")
-                .requestMatchers("/vehicle/update", "/vehicle/delete", "/vehicle/certificate/delete").hasRole("ADMIN")
+                .requestMatchers("/vehicle/pending", "/vehicle/approve", "/vehicle/reject").hasAnyRole("ADMIN", "CERTIFIER")
+                .requestMatchers("/vehicle/update", "/vehicle/certificate/delete").hasAnyRole("ADMIN", "CERTIFIER")
+                .requestMatchers("/vehicle/delete").hasRole("ADMIN")
 
                 // Admin + Entry: vehicle insert/add
-                .requestMatchers("/vehicle/insert", "/vehicle/add").hasAnyRole("ADMIN", "ENTRY")
+                .requestMatchers("/vehicle/insert", "/vehicle/add").hasAnyRole("ADMIN", "ENTRY", "CERTIFIER")
 
                 // Admin + Entry + Viewer: person/staff/student views
-                .requestMatchers("/staff/**", "/student/**", "/view/detail").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
+                .requestMatchers("/staff/**", "/student/**", "/view/detail").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "CERTIFIER")
                 .requestMatchers("/idcard/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER")
 
                 // Viewer: image management
                 .requestMatchers("/view/images/**").hasAnyRole("ADMIN", "VIEWER")
                 .requestMatchers("/uploads/images/**").hasAnyRole("ADMIN", "VIEWER")
-                .requestMatchers("/api/persons/list", "/api/students/**").hasAnyRole("ADMIN", "VIEWER")
+                .requestMatchers("/api/persons/list", "/api/students/**").hasAnyRole("ADMIN", "VIEWER", "CERTIFIER")
 
                 // Searcher + Admin: vehicle search
                 .requestMatchers("/vehicle/search", "/vehicle/scanner").hasAnyRole("ADMIN", "SEARCHER")
@@ -88,7 +89,7 @@ public class SecurityConfig {
                 .requestMatchers("/search/**").hasAnyRole("ADMIN", "SEARCHER")
 
                 // API endpoints used by views
-                .requestMatchers("/api/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER")
+                .requestMatchers("/api/**").hasAnyRole("ADMIN", "ENTRY", "VIEWER", "SEARCHER", "CERTIFIER")
 
                 // All other routes require authentication
                 .anyRequest().authenticated()

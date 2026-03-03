@@ -46,7 +46,7 @@ public class StaffController {
      * GET /staff/detail?empno=12345
      */
     @GetMapping("/detail")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'VIEWER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'VIEWER', 'CERTIFIER')")
     public String staffDetail(@RequestParam(required = false) String empno, Model model) {
 
         if (empno == null || empno.trim().isEmpty()) {
@@ -99,7 +99,7 @@ public class StaffController {
      * GET /staff/search?query=XXX
      */
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'VIEWER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'VIEWER', 'CERTIFIER')")
     public String staffSearch(@RequestParam(required = false) String query, Model model) {
 
         if (query != null && !query.trim().isEmpty()) {

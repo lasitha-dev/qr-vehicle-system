@@ -78,13 +78,44 @@ public class PersonService {
     }
 
     public boolean isCategoryAllowedForUserType(String category, String userType) {
+        return isCategoryAllowedForUserType(category, userType, null);
+    }
+
+    /**
+     * Check if a category is allowed for the given user type.
+     * For certifiers, also checks the username-based category mapping.
+     */
+    public boolean isCategoryAllowedForUserType(String category, String userType, String username) {
         if (category == null || category.isBlank()) {
             return true;
         }
         if (isAcademicUserType(userType) || isNonAcademicUserType(userType)) {
             return "permanent".equalsIgnoreCase(category);
         }
+        // Certifier restriction: check username-based allowed categories
+        if ("certifier".equalsIgnoreCase(userType) && username != null) {
+            java.util.Set<String> allowed = getCertifierAllowedCategories(username);
+            if (!allowed.isEmpty()) {
+                return allowed.contains(category.toLowerCase());
+            }
+        }
         return true;
+    }
+
+    /**
+     * Get allowed categories for a certifier based on their username.
+     * Mirrors PHP: gsd → permanent, studservices → student.
+     */
+    public java.util.Set<String> getCertifierAllowedCategories(String username) {
+        if (username == null) return java.util.Set.of();
+        switch (username.toLowerCase()) {
+            case "gsd":
+                return java.util.Set.of("permanent");
+            case "studservices":
+                return java.util.Set.of("student");
+            default:
+                return java.util.Set.of();
+        }
     }
 
     public boolean canViewPermanentStaffForUserType(Staff staff, String userType) {

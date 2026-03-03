@@ -30,7 +30,7 @@ public class User {
     private String fullName;
 
     @Column(name = "utype")
-    private String userType; // admin, entry, viewer, searcher, GoogleUser
+    private String userType; // admin, entry, viewer, searcher, certifier, GoogleUser
 
     @Column(name = "Create-Date")
     private String createDate; // Stored as varchar in DB
@@ -59,6 +59,11 @@ public class User {
     // Check if user is admin
     public boolean isAdmin() {
         return "admin".equalsIgnoreCase(userType);
+    }
+
+    // Check if user is a certifier
+    public boolean isCertifier() {
+        return "certifier".equalsIgnoreCase(userType);
     }
 
     // Check if user logged in via Google

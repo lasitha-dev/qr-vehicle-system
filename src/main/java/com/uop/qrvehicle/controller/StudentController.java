@@ -44,7 +44,7 @@ public class StudentController {
      * Mirrors PHP view.php — comprehensive student profile page.
      */
     @GetMapping("/detail")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'VIEWER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'VIEWER', 'CERTIFIER')")
     public String studentDetail(@RequestParam(required = false) String regno, Model model) {
         if (regno == null || regno.trim().isEmpty()) {
             model.addAttribute("error", "Please enter a student registration number.");
@@ -82,7 +82,7 @@ public class StudentController {
      * Student search — find students by registration number or name.
      */
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'VIEWER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ENTRY', 'VIEWER', 'CERTIFIER')")
     public String searchStudents(@RequestParam(required = false) String query, Model model) {
         if (query != null && !query.trim().isEmpty()) {
             List<StudentDetailDTO> results = studentService.searchStudents(query.trim());

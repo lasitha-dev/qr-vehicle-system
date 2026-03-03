@@ -31,13 +31,13 @@
         <a th:href="@{/vehicle/search}" class="nav-link" 
            th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''SEARCHER'')')}">🚗 Vehicle Search</a>
         <a th:href="@{/vehicle/insert}" class="nav-link"
-           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'')')}">➕ Add Vehicle</a>
+           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''CERTIFIER'')')}">➕ Add Vehicle</a>
         <a th:href="@{/qr/generate}" class="nav-link"
            th:if="${#authorization.expression('hasRole(''ADMIN'')')}">📱 QR Generator</a>
         <a th:href="@{/student/detail}" class="nav-link"
-           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''VIEWER'')')}">🎓 Student Details</a>
+           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''VIEWER'', ''CERTIFIER'')')}">🎓 Student Details</a>
         <a th:href="@{/staff/detail}" class="nav-link"
-           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''VIEWER'')')}">👔 Staff Details</a>
+           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''VIEWER'', ''CERTIFIER'')')}">👔 Staff Details</a>
         <a th:href="@{/idcard/preview}" class="nav-link"
            th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''ENTRY'', ''VIEWER'')')}">🪪 ID Card</a>
         <a th:href="@{/vehicle/scanner}" class="nav-link"
